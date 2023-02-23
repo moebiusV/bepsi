@@ -1,6 +1,6 @@
 const { Gpio } = require('onoff');
 const axios = require('axios');
-const { sleep } = require('./common');
+const { sleep, nowTimestamp } = require('./common');
 const { NOCODB_API_TOKEN } = require('./env');
 
 let isDispensing = false;
@@ -42,7 +42,7 @@ const dispenseFromDiscord = async (pinNo) => {
     NOCO_CREATE_NEW_PURCHASE_URL,
     {
       currency: 'discord',
-      timestamp: (new Date().getTime() / 1000).toString(),
+      timestamp: nowTimestamp(),
       item: getDispenseItemGivenPin(pinNo),
     },
     {
@@ -62,7 +62,7 @@ const dispenseFromPayments = async (pinNo, currency) => {
     NOCO_CREATE_NEW_PURCHASE_URL,
     {
       currency,
-      timestamp: (new Date().getTime() / 1000).toString(),
+      timestamp: nowTimestamp(),
       item: getDispenseItemGivenPin(pinNo),
     },
     {

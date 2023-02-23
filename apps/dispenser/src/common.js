@@ -11,6 +11,8 @@ const { PAYMENT_ADDRESS } = require('./env');
 // eslint-disable-next-line
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+const nowTimestamp = () => parseInt((new Date().getTime() / 1000).toString(), 10).toString();
+
 function randomElement(array) {
   return array[Math.floor(Math.random() * array.length)];
 }
@@ -87,4 +89,5 @@ module.exports = {
   parseStablecoin,
   randomElement,
   randomPin,
+  nowTimestamp,
 };
