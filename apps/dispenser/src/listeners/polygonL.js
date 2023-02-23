@@ -1,6 +1,6 @@
 const { ethers } = require('ethers');
 const abiDecoder = require('abi-decoder');
-const { dispense } = require('../machine');
+const { dispenseFromPayments } = require('../machine');
 const {
   POLYGON_RPC_URL,
   MIN_MATIC_PAYMENT_USD,
@@ -57,7 +57,7 @@ const handleMaticPayment = async (txs) => {
       );
 
       // eslint-disable-next-line
-      await dispense(pin);
+      await dispenseFromPayments(pin, 'matic');
     } else {
       console.log(
         `payment received (NOT ENOUGH) ${ethers.utils.formatEther(
@@ -106,8 +106,7 @@ const handleStablecoinPayments = async (txs) => {
       }, dispensing...`,
     );
 
-    // eslint-disable-next-line
-    await dispense(curTx.pin);
+    await dispenseFromPayments(curTx.pin, getStablecoinName(curTx.to));
   }
 };
 
