@@ -1,6 +1,6 @@
 const { Client, GatewayIntentBits, Collection } = require('discord.js');
-const { DISCORD_CHANNEL_ID, DISCORD_TOKEN } = require('./env');
-const { dispense } = require('./machine');
+const { DISCORD_CHANNEL_ID, DISCORD_TOKEN } = require('../env');
+const { dispense } = require('../machine');
 
 const client = new Client({
   partials: ['MESSAGE', 'CHANNEL', 'REACTION'],

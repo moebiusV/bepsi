@@ -1,10 +1,15 @@
 const { Gpio } = require('onoff');
 const { sleep } = require('./common');
+const { NOCODB_API_TOKEN } = require('./env');
 
 let isDispensing = false;
 
 // Wrapper around this so we can easily keep track of things io nocodedb
 const dispenseFromDiscord = async (pinNo) => {
+
+};
+
+const dispenseFromPayments = async (pinNo, currency) => {
 
 };
 
