@@ -38,14 +38,15 @@ const listenToGpio = (pinNo) => {
     () => pin.read(async (err, value) => {
       if (value !== prevValue) {
         // New value, send to the database
-        console.log(`${getItemNameFromPin(pinNo)} status changed to ${getItemStatus(value)}`);
         prevValue = value;
 
         const triggeredItem = getItemNameFromPin(pinNo);
 
         // Get the id of the item
-        const resp = await axios.get(NOCO_FIND_ONE_MACHINE_STATE_URL, { headers: { 'xc-token': NOCODB_API_TOKEN }, params: { where: `(name,eq,${triggeredItem})` } });
+        const resp = await axios.get(NOCO_FIND_ONE_MACHINE_STATE_URL, { headers: { 'xc-token': NOCODB_API_TOKEN }, params: { where: `(item,eq,${triggeredItem})` } });
         const rowId = resp.data.Id;
+
+        console.log(`${getItemNameFromPin(pinNo)} status changed to ${getItemStatus(value)} - (Id: ${rowId})`);
 
         // patch machine state
         await axios.patch(
