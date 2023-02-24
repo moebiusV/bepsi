@@ -17,9 +17,10 @@ const pinToItem = {
 
 const getItemNameFromPin = (pinNo) => pinToItem[pinNo] || `unmarked-${pinNo}`;
 
-const getItemStatus = (i) => (i === 0 ? 'limited' : 'refill');
+const getItemStatus = (i) => (i === 0 ? 'limited' : 'refilled');
 
 const NOCO_CREATE_NEW_MACHINE_STATE_URL = 'http://nocodb.dctrl.wtf/api/v1/db/data/v1/bepsi/machine_state';
+const NOCO_FIND_ONE_MACHINE_STATE_URL = 'https://nocodb.dctrl.wtf/api/v1/db/data/v1/bepsi/machine_state/find-one';
 
 const listenToGpio = (pinNo) => {
   let pin;
@@ -34,17 +35,22 @@ const listenToGpio = (pinNo) => {
   // Once the thing triggers, only 6 remaining
   let prevValue = 1;
   setInterval(
-    () => pin.read((err, value) => {
+    () => pin.read(async (err, value) => {
       if (value !== prevValue) {
         // New value, send to the database
         console.log(`${getItemNameFromPin(pinNo)} status changed to ${getItemStatus(value)}`);
         prevValue = value;
 
-        //
-        axios.post(
-          NOCO_CREATE_NEW_MACHINE_STATE_URL,
+        const triggeredItem = getItemNameFromPin(pinNo);
+
+        // Get the id of the item
+        const resp = await axios.get(NOCO_FIND_ONE_MACHINE_STATE_URL, { headers: { 'xc-token': NOCODB_API_TOKEN }, params: { where: `(name,eq,${triggeredItem})` } });
+        const rowId = resp.data.Id;
+
+        // patch machine state
+        await axios.patch(
+          `${NOCO_CREATE_NEW_MACHINE_STATE_URL}/${rowId}`,
           {
-            item: getItemNameFromPin(pinNo),
             status: getItemStatus(value),
           },
           {
