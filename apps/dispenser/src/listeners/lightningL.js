@@ -1,8 +1,9 @@
 const WebSocket = require('ws');
 const { dispenseFromPayments } = require('../machine');
+const { LIGHTNING_LNBIT_URL } = require('../env');
 
 // WebSocket URL
-const wsUrl = 'wss://send.laisee.org/api/v1/ws/V5UfKc845cdrKrsmMijExW';
+const wsUrl = LIGHTNING_LNBIT_URL;
 
 const startLightningListener = async () => {
         
