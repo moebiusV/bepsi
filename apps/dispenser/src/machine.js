@@ -73,7 +73,7 @@ const dispenseFromPayments = async (pinNo, currency) => {
       },
     },
   ).catch((e) => console.log(`[dispenseFromDiscord] POST TO NOCODE DB FAILURE ${e}`));
-
+  console.log('dispensing ' + pinNo);
   dispense(pinNo);
 };
 
