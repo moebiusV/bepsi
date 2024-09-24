@@ -1,13 +1,13 @@
-const { startDiscordListener } = require('./src/listeners/discordL');
-const { startPolygonListener } = require('./src/listeners/polygonL');
-const { startMachineChecker } = require('./src/listeners/machineL');
+const { startDiscordListener } = require("./src/listeners/discordL");
+const { startEvmListener } = require("./src/listeners/evmL");
+const { startMachineChecker } = require("./src/listeners/machineL");
 
-const { startLightningListener } = require('./src/listeners/lightningL');
+const { startLightningListener } = require("./src/listeners/lightningL");
 
 const main = async () => {
-  startDiscordListener();
-  startPolygonListener();
-  startLightningListener();
-  startMachineChecker();
+  //startDiscordListener();
+  startEvmListener();
+  //startLightningListener();
+  //startMachineChecker();
 };
 main();
