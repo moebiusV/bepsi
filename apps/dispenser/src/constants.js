@@ -58,12 +58,12 @@ const NETWORKS = {
 // Selection to pin
 // [4, 5, 6, 12, 13, 16, 9]
 const VENDOR_SELECTION_TO_PIN_MAPPING = {
-  1: 4,
-  2: 5,
-  3: 6,
-  4: 12,
-  5: 13,
-  6: 16,
+  1: 516,
+  2: 517,
+  3: 518,
+  4: 524,
+  5: 525,
+  6: 528,
 };
 
 module.exports = {
