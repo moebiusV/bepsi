@@ -57,6 +57,19 @@ const NETWORKS = {
       },
     ],
   },
+  solana: {
+    implementation: "SVM",
+    name: "Solana",
+    rpc: "https://api.mainnet-beta.solana.com",
+    rpcSubscriptions: "wss://api.mainnet-beta.solana.com",
+    stablecoins: [
+      {
+        symbol: "USDC",
+        decimals: 6,
+        address: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      },
+    ],
+  },
 };
 
 // Selection to pin
