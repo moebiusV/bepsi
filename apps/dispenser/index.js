@@ -8,10 +8,10 @@ const { startLightningListener } = require("./src/listeners/lightningL");
 
 const main = async () => {
   const abortController = createExitAwareAbortController();
-  //startDiscordListener();
+  startDiscordListener();
   startEvmListener();
   startSolanaListener(abortController.signal);
-  //startLightningListener();
+  startLightningListener();
   //startMachineChecker();
 };
 main();

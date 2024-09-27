@@ -1,6 +1,7 @@
 const { Client, GatewayIntentBits, Collection } = require("discord.js");
 const { DISCORD_CHANNEL_ID, DISCORD_TOKEN } = require("../env");
 const { dispenseFromDiscord } = require("../machine");
+const { VENDOR_SELECTION_TO_PIN_MAPPING } = require("../constants.js")
 
 const client = new Client({
   partials: ["MESSAGE", "CHANNEL", "REACTION"],
@@ -19,25 +20,14 @@ async function main() {
   console.log(`[Discord] Logged in as ${client.user.tag}!`);
 
   const channel = await client.channels.fetch(DISCORD_CHANNEL_ID);
+  const oldMessages = await channel.messages.fetch({limit: 100});
+  await channel.bulkDelete(oldMessages);
+
   const message = await channel.send("Bitpepsi for all!");
 
-  // Green, red, pink, cherry, purple, orange
-  const supportedEmojis = ["🟢", "🔴", "🌸", "🍒", "🟣", "🟠"];
-  const emojiToPin = {
-    "🟢": 4,
-    "🔴": 5,
-    "🌸": 6,
-    "🍒": 12,
-    "🟣": 13,
-    "🟠": 16,
-  };
+  const supportedEmojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣"];
 
-  message.react("🟢");
-  message.react("🔴");
-  message.react("🌸");
-  message.react("🍒");
-  message.react("🟣");
-  message.react("🟠");
+  supportedEmojis.forEach(emoji => message.react(emoji))
 
   client.on("messageReactionAdd", async (reaction, user) => {
     // Ignore bot's own reaction
@@ -60,7 +50,7 @@ async function main() {
     }
 
     // eslint-disable-next-line
-    const pin = emojiToPin[reaction._emoji.name];
+    const pin = VENDOR_SELECTION_TO_PIN_MAPPING[supportedEmojis.indexOf(reaction._emoji.name) + 1]
     if (pin === undefined || pin === null) {
       return;
     }
