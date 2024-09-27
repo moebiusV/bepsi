@@ -46,28 +46,29 @@ const handleStablecoinPayments = async (from, amount, network, stablecoin) => {
 };
 
 const startEvmListener = () => {
-  for (key in NETWORKS) {
-    const network = NETWORKS[key];
-    provider = new ethers.providers.JsonRpcProvider(network.rpc);
+  Object.values(NETWORKS)
+    .filter(({ implementation }) => implementation === "EVM")
+    .forEach((network) => {
+      provider = new ethers.providers.JsonRpcProvider(network.rpc);
 
-    for (i in network.stablecoins) {
-      const stablecoin = network.stablecoins[i];
-      const contract = new ethers.Contract(
-        stablecoin.address,
-        tokenAbi,
-        provider,
-      );
-      console.log(
-        `Watching ${stablecoin.symbol} on ${network.name} (${stablecoin.address})`,
-      );
-      contract.on(
-        contract.filters.Transfer(null, PAYMENT_ADDRESS, null),
-        (from, to, amount) => {
-          handleStablecoinPayments(from, amount, network, stablecoin);
-        },
-      );
-    }
-  }
+      for (i in network.stablecoins) {
+        const stablecoin = network.stablecoins[i];
+        const contract = new ethers.Contract(
+          stablecoin.address,
+          tokenAbi,
+          provider
+        );
+        console.log(
+          `Watching ${stablecoin.symbol} on ${network.name} (${stablecoin.address})`
+        );
+        contract.on(
+          contract.filters.Transfer(null, PAYMENT_ADDRESS, null),
+          (from, to, amount) => {
+            handleStablecoinPayments(from, amount, network, stablecoin);
+          }
+        );
+      }
+    });
 };
 
 module.exports = {

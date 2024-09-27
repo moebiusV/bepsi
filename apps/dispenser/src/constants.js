@@ -1,5 +1,6 @@
 const NETWORKS = {
   polygon: {
+    implementation: "EVM",
     name: "Polygon",
     rpc: "https://polygon.llamarpc.com",
     stablecoins: [
@@ -16,6 +17,7 @@ const NETWORKS = {
     ],
   },
   base: {
+    implementation: "EVM",
     name: "Base",
     rpc: "https://base.llamarpc.com",
     stablecoins: [
@@ -27,6 +29,7 @@ const NETWORKS = {
     ],
   },
   arbitrum: {
+    implementation: "EVM",
     name: "Arbitrum",
     rpc: "https://arbitrum.llamarpc.com",
     stablecoins: [
@@ -43,6 +46,7 @@ const NETWORKS = {
     ],
   },
   optimism: {
+    implementation: "EVM",
     name: "Optimism",
     rpc: "https://optimism.llamarpc.com",
     stablecoins: [
