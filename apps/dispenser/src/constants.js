@@ -1,5 +1,6 @@
 const NETWORKS = {
   polygon: {
+    implementation: "EVM",
     name: "Polygon",
     rpc: "https://polygon.llamarpc.com",
     stablecoins: [
@@ -16,6 +17,7 @@ const NETWORKS = {
     ],
   },
   base: {
+    implementation: "EVM",
     name: "Base",
     rpc: "https://base.llamarpc.com",
     stablecoins: [
@@ -27,6 +29,7 @@ const NETWORKS = {
     ],
   },
   arbitrum: {
+    implementation: "EVM",
     name: "Arbitrum",
     rpc: "https://arbitrum.llamarpc.com",
     stablecoins: [
@@ -43,6 +46,7 @@ const NETWORKS = {
     ],
   },
   optimism: {
+    implementation: "EVM",
     name: "Optimism",
     rpc: "https://optimism.llamarpc.com",
     stablecoins: [
@@ -50,6 +54,19 @@ const NETWORKS = {
         symbol: "USDC",
         decimals: 6,
         address: "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
+      },
+    ],
+  },
+  solana: {
+    implementation: "SVM",
+    name: "Solana",
+    rpc: "https://api.mainnet-beta.solana.com",
+    rpcSubscriptions: "wss://api.mainnet-beta.solana.com",
+    stablecoins: [
+      {
+        symbol: "USDC",
+        decimals: 6,
+        address: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
       },
     ],
   },

@@ -16,6 +16,7 @@ const ENV_VARS = [
   "NOCODB_API_TOKEN",
   "PAYMENT_ADDRESS",
   "LIGHTNING_LNBIT_URL",
+  "SOLANA_TREASURY_ADDRESS",
 ];
 let hasAllEnvVars = true;
 for (let i = 0; i < ENV_VARS.length; i++) {
@@ -35,6 +36,7 @@ const {
   NOCODB_API_TOKEN,
   PAYMENT_ADDRESS,
   LIGHTNING_LNBIT_URL,
+  SOLANA_TREASURY_ADDRESS,
 } = process.env;
 
 console.log(`Listening to payments at address ${PAYMENT_ADDRESS}`);
@@ -45,4 +47,5 @@ module.exports = {
   NOCODB_API_TOKEN,
   PAYMENT_ADDRESS,
   LIGHTNING_LNBIT_URL,
+  SOLANA_TREASURY_ADDRESS
 };

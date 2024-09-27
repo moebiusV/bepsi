@@ -36,7 +36,23 @@ function contains(a, b) {
   return isT;
 }
 
+let abortController;
+function createExitAwareAbortController() {
+  if (!abortController) {
+    abortController = new AbortController();
+    const abortOnExit = () => {
+      if (!abortController.signal.aborted) {
+        abortController.abort();
+      }
+    };
+    process.on('SIGINT', abortOnExit);
+    process.on('SIGTERM', abortOnExit);
+  }
+  return abortController;
+}
+
 module.exports = {
+  createExitAwareAbortController,
   sleep,
   match,
   contains,
