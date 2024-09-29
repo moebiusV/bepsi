@@ -1,4 +1,4 @@
-const { createExitAwareAbortController } = require('./src/common')
+const { createExitAwareAbortController } = require("./src/common");
 const { startDiscordListener } = require("./src/listeners/discordL");
 const { startEvmListener } = require("./src/listeners/evmL");
 const { startSolanaListener } = require("./src/listeners/solanaL");
@@ -12,6 +12,7 @@ const main = async () => {
   startEvmListener();
   startSolanaListener(abortController.signal);
   startLightningListener();
-  //startMachineChecker();
+  startMachineChecker();
 };
+
 main();

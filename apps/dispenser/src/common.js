@@ -45,8 +45,8 @@ function createExitAwareAbortController() {
         abortController.abort();
       }
     };
-    process.on('SIGINT', abortOnExit);
-    process.on('SIGTERM', abortOnExit);
+    process.on("SIGINT", abortOnExit);
+    process.on("SIGTERM", abortOnExit);
   }
   return abortController;
 }
