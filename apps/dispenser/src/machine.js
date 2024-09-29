@@ -26,7 +26,7 @@ const dispense = async (pinNo) => {
   isDispensing = true;
 
   try {
-    const pin = new Gpio(pinNo, "out");--exp-backoff-restart-delay=100
+    const pin = new Gpio(pinNo, "out");
     pin.writeSync(0);
     await sleep(2000);
     pin.writeSync(1);
