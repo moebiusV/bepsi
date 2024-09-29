@@ -11,5 +11,5 @@ yarn start
 
 # Start
 npm install -g pm2
-pm2 start index.js --name bepsi-pi
+pm2 start index.js --name bepsi-pi --exp-backoff-restart-delay=100
 ```
