@@ -12,7 +12,7 @@ const main = async () => {
   startEvmListener();
   startSolanaListener(abortController.signal);
   startLightningListener();
-  startMachineChecker();
+  // startMachineChecker();
 };
 
 main();
