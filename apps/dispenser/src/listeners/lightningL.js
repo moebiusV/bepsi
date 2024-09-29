@@ -27,6 +27,7 @@ const startLightningListener = async () => {
   // Event listener for handling errors
   await ws.on("error", function error(err) {
     console.error("WebSocket error:", err);
+    throw "lightning Websocket failed to connect";
   });
 };
 
