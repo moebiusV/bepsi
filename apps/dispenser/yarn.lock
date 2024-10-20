@@ -453,358 +453,371 @@
   resolved "https://registry.yarnpkg.com/@sapphire/snowflake/-/snowflake-3.4.0.tgz#25c012158a9feea2256c718985dbd6c1859a5022"
   integrity sha512-zZxymtVO6zeXVMPds+6d7gv/OfnCc25M1Z+7ZLB0oPmeMTPeRWVPQSS16oDJy5ZsyCOLj7M6mbZml5gWXcVRNw==
 
-"@solana-program/token@^0.3.0":
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/@solana-program/token/-/token-0.3.0.tgz#ce6b38b3256e7ba62115df9c5ad528b1b37dda7a"
-  integrity sha512-G1bbGVN8yPpsXCEmARI4ttRis1uMEWbD5CVZddPv07f5ta1m7Tpu9IuRPSwi9n97ywjG0EvsMVYXDWWQOyFTSA==
+"@solana-program/token@^0.3.2":
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/@solana-program/token/-/token-0.3.2.tgz#73f6d58b6de344566b1b89d90e8cd173c25ac415"
+  integrity sha512-kyw9/1UlqFETpgpC1ZjLpa1ZKfsIsbDr8+VGDa98TYfIwZh+FPx7ychDIyXAZJR510/w9L8nBraqPTzn0loYHw==
 
-"@solana/accounts@2.0.0-rc.1":
-  version "2.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@solana/accounts/-/accounts-2.0.0-rc.1.tgz#0584ad06d9cea43e3d4196708d9f36e53c3ca919"
-  integrity sha512-au6grz6iIgepKIbN2HUHKatFhg7mvIvdjFMDYpuEx+AGwK7vHnN5PsJqSCGQydthC2nVQwSZC9IgA5MF5wUHdw==
+"@solana/accounts@2.0.0-canary-20241018225046":
+  version "2.0.0-canary-20241018225046"
+  resolved "https://registry.yarnpkg.com/@solana/accounts/-/accounts-2.0.0-canary-20241018225046.tgz#46f46f1097c462f94799f031aca7d21397b80184"
+  integrity sha512-VpOHNwfF1tTSO8YaiK4LqU0OEUkhUcuMhAOsM8SfeeWh2lAQCFyPEH4JU0FeOhQ0lWI+woF+tObanEIfhDSD5Q==
   dependencies:
-    "@solana/addresses" "2.0.0-rc.1"
-    "@solana/codecs-core" "2.0.0-rc.1"
-    "@solana/codecs-strings" "2.0.0-rc.1"
-    "@solana/errors" "2.0.0-rc.1"
-    "@solana/rpc-spec" "2.0.0-rc.1"
-    "@solana/rpc-types" "2.0.0-rc.1"
+    "@solana/addresses" "2.0.0-canary-20241018225046"
+    "@solana/codecs-core" "2.0.0-canary-20241018225046"
+    "@solana/codecs-strings" "2.0.0-canary-20241018225046"
+    "@solana/errors" "2.0.0-canary-20241018225046"
+    "@solana/rpc-spec" "2.0.0-canary-20241018225046"
+    "@solana/rpc-types" "2.0.0-canary-20241018225046"
 
-"@solana/addresses@2.0.0-rc.1":
-  version "2.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@solana/addresses/-/addresses-2.0.0-rc.1.tgz#1f1b0d4210f22a71ba289ac0ca2ec461ede039da"
-  integrity sha512-g31KrLZdECjAKceShlGoYxnWDmEVklpjPs8xOtnj/HWupEk+Mds4vtmTACTAeJkWZW/3x+z0aexMtO86MKA47g==
+"@solana/addresses@2.0.0-canary-20241018225046":
+  version "2.0.0-canary-20241018225046"
+  resolved "https://registry.yarnpkg.com/@solana/addresses/-/addresses-2.0.0-canary-20241018225046.tgz#17cb6d7edcb72ba9d740f9a4986c23c3e666dcb7"
+  integrity sha512-bbIviABxXsBzjyXTEzvG8+7KORDnygQ4DvXahaekkg5Opepy5ktiX+Zu+cVy0Q+bNn92iK4ftnxrmo4SHwsnow==
   dependencies:
-    "@solana/assertions" "2.0.0-rc.1"
-    "@solana/codecs-core" "2.0.0-rc.1"
-    "@solana/codecs-strings" "2.0.0-rc.1"
-    "@solana/errors" "2.0.0-rc.1"
+    "@solana/assertions" "2.0.0-canary-20241018225046"
+    "@solana/codecs-core" "2.0.0-canary-20241018225046"
+    "@solana/codecs-strings" "2.0.0-canary-20241018225046"
+    "@solana/errors" "2.0.0-canary-20241018225046"
 
-"@solana/assertions@2.0.0-rc.1":
-  version "2.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@solana/assertions/-/assertions-2.0.0-rc.1.tgz#5e322f514f0d56d276625dc3c0ca56c3f7630275"
-  integrity sha512-dvxYCUB7ftZa5lWcsyMYLsGm204H6yVN8Q3ngluMG0rhTtScMBRklVg7Vs39ISwJOkJWJPGToaZ7DjNJ83bm1Q==
+"@solana/assertions@2.0.0-canary-20241018225046":
+  version "2.0.0-canary-20241018225046"
+  resolved "https://registry.yarnpkg.com/@solana/assertions/-/assertions-2.0.0-canary-20241018225046.tgz#6e4bbf40b71e7dfa3f1ec1f46c1c8ac89b1a2091"
+  integrity sha512-tCVJGlA12ZUl8OUhCag6x1mWMOdq3YNi2A8BgPVUfr22d3biHixKCtwQ6xmx5uUDoctgfr3Tqe3FokFKEZIYKw==
   dependencies:
-    "@solana/errors" "2.0.0-rc.1"
+    "@solana/errors" "2.0.0-canary-20241018225046"
 
-"@solana/codecs-core@2.0.0-rc.1":
-  version "2.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@solana/codecs-core/-/codecs-core-2.0.0-rc.1.tgz#1a2d76b9c7b9e7b7aeb3bd78be81c2ba21e3ce22"
-  integrity sha512-bauxqMfSs8EHD0JKESaNmNuNvkvHSuN3bbWAF5RjOfDu2PugxHrvRebmYauvSumZ3cTfQ4HJJX6PG5rN852qyQ==
+"@solana/codecs-core@2.0.0-canary-20241018225046":
+  version "2.0.0-canary-20241018225046"
+  resolved "https://registry.yarnpkg.com/@solana/codecs-core/-/codecs-core-2.0.0-canary-20241018225046.tgz#c4f1f6bc962fe0e1bc8d18ff285a67d07239d84e"
+  integrity sha512-xu4wz/Mi3Q+siRJW81sI2AHlvedPIJ43l8X6dsjew2l/XlA2r8QJAdEVLHFKzCakQjlpwqDci569GIPKzvCajQ==
   dependencies:
-    "@solana/errors" "2.0.0-rc.1"
+    "@solana/errors" "2.0.0-canary-20241018225046"
 
-"@solana/codecs-data-structures@2.0.0-rc.1":
-  version "2.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@solana/codecs-data-structures/-/codecs-data-structures-2.0.0-rc.1.tgz#d47b2363d99fb3d643f5677c97d64a812982b888"
-  integrity sha512-rinCv0RrAVJ9rE/rmaibWJQxMwC5lSaORSZuwjopSUE6T0nb/MVg6Z1siNCXhh/HFTOg0l8bNvZHgBcN/yvXog==
+"@solana/codecs-data-structures@2.0.0-canary-20241018225046":
+  version "2.0.0-canary-20241018225046"
+  resolved "https://registry.yarnpkg.com/@solana/codecs-data-structures/-/codecs-data-structures-2.0.0-canary-20241018225046.tgz#5e19a34a9d3024a5fd095b19db34abe79fc525bd"
+  integrity sha512-a49rI9b2xQYbVvrN9rfZPyBwQPtzvCqzyHNGNaogDWe4g1WE//MT2yoAt+qDPU4t1hlVZGXEWgbyZJDQchKa/w==
   dependencies:
-    "@solana/codecs-core" "2.0.0-rc.1"
-    "@solana/codecs-numbers" "2.0.0-rc.1"
-    "@solana/errors" "2.0.0-rc.1"
+    "@solana/codecs-core" "2.0.0-canary-20241018225046"
+    "@solana/codecs-numbers" "2.0.0-canary-20241018225046"
+    "@solana/errors" "2.0.0-canary-20241018225046"
 
-"@solana/codecs-numbers@2.0.0-rc.1":
-  version "2.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@solana/codecs-numbers/-/codecs-numbers-2.0.0-rc.1.tgz#f34978ddf7ea4016af3aaed5f7577c1d9869a614"
-  integrity sha512-J5i5mOkvukXn8E3Z7sGIPxsThRCgSdgTWJDQeZvucQ9PT6Y3HiVXJ0pcWiOWAoQ3RX8e/f4I3IC+wE6pZiJzDQ==
+"@solana/codecs-numbers@2.0.0-canary-20241018225046":
+  version "2.0.0-canary-20241018225046"
+  resolved "https://registry.yarnpkg.com/@solana/codecs-numbers/-/codecs-numbers-2.0.0-canary-20241018225046.tgz#d728c6d76cde3cd646dccc443d34cfc138a3dbcd"
+  integrity sha512-i2Od4LJwewew2BJADuqMRVtS15Hqnr23R42TdSWc5OM6NiRj7pRNmtO9zaf0Eyivh4+SurbCM6o8vpc7MfDDow==
   dependencies:
-    "@solana/codecs-core" "2.0.0-rc.1"
-    "@solana/errors" "2.0.0-rc.1"
+    "@solana/codecs-core" "2.0.0-canary-20241018225046"
+    "@solana/errors" "2.0.0-canary-20241018225046"
 
-"@solana/codecs-strings@2.0.0-rc.1":
-  version "2.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@solana/codecs-strings/-/codecs-strings-2.0.0-rc.1.tgz#e1d9167075b8c5b0b60849f8add69c0f24307018"
-  integrity sha512-9/wPhw8TbGRTt6mHC4Zz1RqOnuPTqq1Nb4EyuvpZ39GW6O2t2Q7Q0XxiB3+BdoEjwA2XgPw6e2iRfvYgqty44g==
+"@solana/codecs-strings@2.0.0-canary-20241018225046":
+  version "2.0.0-canary-20241018225046"
+  resolved "https://registry.yarnpkg.com/@solana/codecs-strings/-/codecs-strings-2.0.0-canary-20241018225046.tgz#e435f013e824b57c0bbd2cbe6bbc8ba2ad6c78f5"
+  integrity sha512-3zI/PjzVLLUOGKKmeuFhI5ncqhObNhE+FZys+pyiA6zt36bZa/IYM5/0bQG2jL2NXt7MkSwHeSrCrM8gjJ3dDw==
   dependencies:
-    "@solana/codecs-core" "2.0.0-rc.1"
-    "@solana/codecs-numbers" "2.0.0-rc.1"
-    "@solana/errors" "2.0.0-rc.1"
+    "@solana/codecs-core" "2.0.0-canary-20241018225046"
+    "@solana/codecs-numbers" "2.0.0-canary-20241018225046"
+    "@solana/errors" "2.0.0-canary-20241018225046"
 
-"@solana/codecs@2.0.0-rc.1":
-  version "2.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@solana/codecs/-/codecs-2.0.0-rc.1.tgz#146dc5db58bd3c28e04b4c805e6096c2d2a0a875"
-  integrity sha512-qxoR7VybNJixV51L0G1RD2boZTcxmwUWnKCaJJExQ5qNKwbpSyDdWfFJfM5JhGyKe9DnPVOZB+JHWXnpbZBqrQ==
+"@solana/codecs@2.0.0-canary-20241018225046":
+  version "2.0.0-canary-20241018225046"
+  resolved "https://registry.yarnpkg.com/@solana/codecs/-/codecs-2.0.0-canary-20241018225046.tgz#041b96556c69e58da6197d60fd4440972080b162"
+  integrity sha512-F8MGMKzxZkpJfi9vNwGILCHT7F+XFqI+GWV53Bgikumhw4iHMqYGpaOA5KWnIQiejIYRz5p4jlWb87pDQZoS9A==
   dependencies:
-    "@solana/codecs-core" "2.0.0-rc.1"
-    "@solana/codecs-data-structures" "2.0.0-rc.1"
-    "@solana/codecs-numbers" "2.0.0-rc.1"
-    "@solana/codecs-strings" "2.0.0-rc.1"
-    "@solana/options" "2.0.0-rc.1"
+    "@solana/codecs-core" "2.0.0-canary-20241018225046"
+    "@solana/codecs-data-structures" "2.0.0-canary-20241018225046"
+    "@solana/codecs-numbers" "2.0.0-canary-20241018225046"
+    "@solana/codecs-strings" "2.0.0-canary-20241018225046"
+    "@solana/options" "2.0.0-canary-20241018225046"
 
-"@solana/errors@2.0.0-rc.1":
-  version "2.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@solana/errors/-/errors-2.0.0-rc.1.tgz#3882120886eab98a37a595b85f81558861b29d62"
-  integrity sha512-ejNvQ2oJ7+bcFAYWj225lyRkHnixuAeb7RQCixm+5mH4n1IA4Qya/9Bmfy5RAAHQzxK43clu3kZmL5eF9VGtYQ==
+"@solana/errors@2.0.0-canary-20241018225046":
+  version "2.0.0-canary-20241018225046"
+  resolved "https://registry.yarnpkg.com/@solana/errors/-/errors-2.0.0-canary-20241018225046.tgz#4e54370f849b473ee56150f5f0f1a99f906967fc"
+  integrity sha512-8tM3QHtaUK0zIlYDD5USXPtuZCcLM1kR9jc+ppBxlkIN4SmkVkv55SHucxdejDYhQav0V1J5bP9c++88Mda6VA==
   dependencies:
     chalk "^5.3.0"
     commander "^12.1.0"
 
-"@solana/fast-stable-stringify@2.0.0-rc.1":
-  version "2.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@solana/fast-stable-stringify/-/fast-stable-stringify-2.0.0-rc.1.tgz#69cbf6e6d77e50efad5ed72097849d7175865f76"
-  integrity sha512-TN8JY+Sbh5NNq4TqdWil8hXKx2d84bTHvY6jfBXNjM29S0fwpUpVRHUzOkuK1mjjWFNkMpfgJfozC0TjdUbkvA==
+"@solana/fast-stable-stringify@2.0.0-canary-20241018225046":
+  version "2.0.0-canary-20241018225046"
+  resolved "https://registry.yarnpkg.com/@solana/fast-stable-stringify/-/fast-stable-stringify-2.0.0-canary-20241018225046.tgz#6fdd30c2aea1d7f9079840f340b3d13d93ffa8dd"
+  integrity sha512-ip6akM70OF3PBD8rvUY/WxYbyXrAsRlGm+2gcfLbyXrnnPQoliTjo8dX59y4FPXMfK2XK2022lrb3HDCBqJf6w==
 
-"@solana/functional@2.0.0-rc.1":
-  version "2.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@solana/functional/-/functional-2.0.0-rc.1.tgz#e70f6377b2e985bc5143584ab9b22e8c8ff2e998"
-  integrity sha512-BmedS5o8HTlU8/NA22I6urJqat9QYIw0oH6rKdMMBisDwX7MtgJhe38W8iLP7QCcxoJeS4526qaD8uD62+Pheg==
+"@solana/functional@2.0.0-canary-20241018225046":
+  version "2.0.0-canary-20241018225046"
+  resolved "https://registry.yarnpkg.com/@solana/functional/-/functional-2.0.0-canary-20241018225046.tgz#70618aefa28c265ab1c625b7cd68dfa11cfd5e14"
+  integrity sha512-CdNPaKf1fwO4udCXeVC0opDc8M16HN+AKUWrZ6sxAvNaQ/33sGomLGZaJsnU4OJ14LKm/G7ZbIleKR0Z0aAH8A==
 
-"@solana/instructions@2.0.0-rc.1":
-  version "2.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@solana/instructions/-/instructions-2.0.0-rc.1.tgz#e6c88bb9ac40b43974a549074f233aba695cc7a9"
-  integrity sha512-zkfL4WBHPbkMrYsuGZc/sekPa/oALIVvVGUw/gwAervMeLZ34cWCUE6WC2uUUh+bq3OFq0/FSFhAg2YbHHDyUw==
+"@solana/instructions@2.0.0-canary-20241018225046":
+  version "2.0.0-canary-20241018225046"
+  resolved "https://registry.yarnpkg.com/@solana/instructions/-/instructions-2.0.0-canary-20241018225046.tgz#7fea1a7162aeea67de8512b7f8fc71a1732e1c89"
+  integrity sha512-188KWs9iolRvVv50npu1hEmiW+PJv2boJJHHdXBEWRO3ZrFiaYhpvDyCSJyP2cl8MeDcbcXA7JrBeUkBtn/Biw==
   dependencies:
-    "@solana/errors" "2.0.0-rc.1"
+    "@solana/errors" "2.0.0-canary-20241018225046"
 
-"@solana/keys@2.0.0-rc.1":
-  version "2.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@solana/keys/-/keys-2.0.0-rc.1.tgz#b7d0baa57ba72782e2fa7335de1edba95fd8ce53"
-  integrity sha512-ls3B0KOvfdiBH3/fnEjHhicfXsLLb4zApJlSX4X8NZ+2TmTJ2Jqa+MakgAzrsxL1FJkTJ1RDboR9xx2CHQtKzw==
+"@solana/keys@2.0.0-canary-20241018225046":
+  version "2.0.0-canary-20241018225046"
+  resolved "https://registry.yarnpkg.com/@solana/keys/-/keys-2.0.0-canary-20241018225046.tgz#744a4ba230559a77aaaa693de2462188283892a0"
+  integrity sha512-4SGmp+jqEIKGIALw9CpmEeUv49HplhQgktLM/hWd3i36YI22NJ5Kl171IL3gZZB99Eme/FaN6mUWDXQPOpLWcQ==
   dependencies:
-    "@solana/assertions" "2.0.0-rc.1"
-    "@solana/codecs-core" "2.0.0-rc.1"
-    "@solana/codecs-strings" "2.0.0-rc.1"
-    "@solana/errors" "2.0.0-rc.1"
+    "@solana/assertions" "2.0.0-canary-20241018225046"
+    "@solana/codecs-core" "2.0.0-canary-20241018225046"
+    "@solana/codecs-strings" "2.0.0-canary-20241018225046"
+    "@solana/errors" "2.0.0-canary-20241018225046"
 
-"@solana/options@2.0.0-rc.1":
-  version "2.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@solana/options/-/options-2.0.0-rc.1.tgz#06924ba316dc85791fc46726a51403144a85fc4d"
-  integrity sha512-mLUcR9mZ3qfHlmMnREdIFPf9dpMc/Bl66tLSOOWxw4ml5xMT2ohFn7WGqoKcu/UHkT9CrC6+amEdqCNvUqI7AA==
+"@solana/options@2.0.0-canary-20241018225046":
+  version "2.0.0-canary-20241018225046"
+  resolved "https://registry.yarnpkg.com/@solana/options/-/options-2.0.0-canary-20241018225046.tgz#62d7ed146aca94fcfaa8dec92a293be0d4d7d996"
+  integrity sha512-HTitQHhsb/741tfhHelv9zfIq095JXG4JhaIiuyXzFCUMI0QrOHRTrfZvY9nEyVyEBtlwizZSmALX64KRnCRYA==
   dependencies:
-    "@solana/codecs-core" "2.0.0-rc.1"
-    "@solana/codecs-data-structures" "2.0.0-rc.1"
-    "@solana/codecs-numbers" "2.0.0-rc.1"
-    "@solana/codecs-strings" "2.0.0-rc.1"
-    "@solana/errors" "2.0.0-rc.1"
+    "@solana/codecs-core" "2.0.0-canary-20241018225046"
+    "@solana/codecs-data-structures" "2.0.0-canary-20241018225046"
+    "@solana/codecs-numbers" "2.0.0-canary-20241018225046"
+    "@solana/codecs-strings" "2.0.0-canary-20241018225046"
+    "@solana/errors" "2.0.0-canary-20241018225046"
 
-"@solana/programs@2.0.0-rc.1":
-  version "2.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@solana/programs/-/programs-2.0.0-rc.1.tgz#9b0155bd4d6f45bce7bed145f5d94ea4466b907d"
-  integrity sha512-wF49DychwSz3sVmTF51R6DTHBGMP7Uhe7EdmCNu+Ef9EgKBJZFfrViOD6M8Q0b3WH//TV63HNlX/2QmHtJjQHg==
+"@solana/programs@2.0.0-canary-20241018225046":
+  version "2.0.0-canary-20241018225046"
+  resolved "https://registry.yarnpkg.com/@solana/programs/-/programs-2.0.0-canary-20241018225046.tgz#7bd50ea2a517c7e4cb140fa6a7c63f8d3a23eddb"
+  integrity sha512-2w4xzISA4nti1cUlI4ZhjES2EAkHo/mvgFj/YkQt28rTqwtT/qwdXbDFC+nS3OuK5kAKpKOhuGc/0JCTMuybgQ==
   dependencies:
-    "@solana/addresses" "2.0.0-rc.1"
-    "@solana/errors" "2.0.0-rc.1"
+    "@solana/addresses" "2.0.0-canary-20241018225046"
+    "@solana/errors" "2.0.0-canary-20241018225046"
 
-"@solana/promises@2.0.0-rc.1":
-  version "2.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@solana/promises/-/promises-2.0.0-rc.1.tgz#78a30f999dbb31a4b50a99b082241e3efa5b236b"
-  integrity sha512-iIaC52Ka+omGabGn2LHOSgEm9N2gI7Iyik6LE3DDxZ4MuYmGcJ4E315XuE/UVXWnc9qOfOjgtSaaOYhde0vyrQ==
+"@solana/promises@2.0.0-canary-20241018225046":
+  version "2.0.0-canary-20241018225046"
+  resolved "https://registry.yarnpkg.com/@solana/promises/-/promises-2.0.0-canary-20241018225046.tgz#401b09fd7c7816b370632cb2139a6b9372e0d4d7"
+  integrity sha512-RRwq4ESY+OzdT9PwyEo3+iNIyov1nM668qbYtJNVCtmTy760uw4YCh8K8++gk69yy5DNdfRFa2eOUfv/fhuexw==
 
-"@solana/rpc-api@2.0.0-rc.1":
-  version "2.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@solana/rpc-api/-/rpc-api-2.0.0-rc.1.tgz#2afc4c928f8f4c1d4eafb122368754a49095b8da"
-  integrity sha512-pg/w+0pgj3msBCC/hkZa9/qZHRdqh7MLsHMJInXnenO+Rzj6IyE47Ig6rt6GuI4OxYy+1d714jcPXVMA8p2YWw==
+"@solana/rpc-api@2.0.0-canary-20241018225046":
+  version "2.0.0-canary-20241018225046"
+  resolved "https://registry.yarnpkg.com/@solana/rpc-api/-/rpc-api-2.0.0-canary-20241018225046.tgz#b687107626d98de919d882bfa656390ec584b5fd"
+  integrity sha512-oGAI02m5lPexGYBSyoFuCxiLD0uuR/B88B69JuNp+FCv/Dgs/i3I61pFKkrKHwNZyAAuJOJokikjAWD267nRMA==
   dependencies:
-    "@solana/addresses" "2.0.0-rc.1"
-    "@solana/codecs-core" "2.0.0-rc.1"
-    "@solana/codecs-strings" "2.0.0-rc.1"
-    "@solana/errors" "2.0.0-rc.1"
-    "@solana/keys" "2.0.0-rc.1"
-    "@solana/rpc-parsed-types" "2.0.0-rc.1"
-    "@solana/rpc-spec" "2.0.0-rc.1"
-    "@solana/rpc-transformers" "2.0.0-rc.1"
-    "@solana/rpc-types" "2.0.0-rc.1"
-    "@solana/transaction-messages" "2.0.0-rc.1"
-    "@solana/transactions" "2.0.0-rc.1"
+    "@solana/addresses" "2.0.0-canary-20241018225046"
+    "@solana/codecs-core" "2.0.0-canary-20241018225046"
+    "@solana/codecs-strings" "2.0.0-canary-20241018225046"
+    "@solana/errors" "2.0.0-canary-20241018225046"
+    "@solana/keys" "2.0.0-canary-20241018225046"
+    "@solana/rpc-parsed-types" "2.0.0-canary-20241018225046"
+    "@solana/rpc-spec" "2.0.0-canary-20241018225046"
+    "@solana/rpc-transformers" "2.0.0-canary-20241018225046"
+    "@solana/rpc-types" "2.0.0-canary-20241018225046"
+    "@solana/transaction-messages" "2.0.0-canary-20241018225046"
+    "@solana/transactions" "2.0.0-canary-20241018225046"
 
-"@solana/rpc-parsed-types@2.0.0-rc.1":
-  version "2.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@solana/rpc-parsed-types/-/rpc-parsed-types-2.0.0-rc.1.tgz#bac2954cf6b5821281c006f9448d52390e33bce7"
-  integrity sha512-5/AYNiZvR9do56VJgmTscRwnd9myt6x9uG7b0S3V+K5e0xzA9yJF68SzI4TQSNmLfWXCaVC90xGCWWkM19lLIQ==
+"@solana/rpc-parsed-types@2.0.0-canary-20241018225046":
+  version "2.0.0-canary-20241018225046"
+  resolved "https://registry.yarnpkg.com/@solana/rpc-parsed-types/-/rpc-parsed-types-2.0.0-canary-20241018225046.tgz#f5c9d05c49688f57ddeab28abe2b168d7e03dd1a"
+  integrity sha512-KhRZY12wJTvBfMAsoBng88RnHN/N4rixEW0gxTYMwHJjr84OzcLeCRNJzBcm3upaxo7fAQ+TP98A5nTSUNCztg==
 
-"@solana/rpc-spec-types@2.0.0-rc.1":
-  version "2.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@solana/rpc-spec-types/-/rpc-spec-types-2.0.0-rc.1.tgz#441ddd6bbc9895dd74bc1c9f99b62d396011ded6"
-  integrity sha512-Z0gOrzasTYU+kNNnDDG2snZxBoBPMN8oFc0EE9HiDKN9JEsc+asexzKeq+Nea7JVqVFcN5V3bjqrpD86V5EOiQ==
+"@solana/rpc-spec-types@2.0.0-canary-20241018225046":
+  version "2.0.0-canary-20241018225046"
+  resolved "https://registry.yarnpkg.com/@solana/rpc-spec-types/-/rpc-spec-types-2.0.0-canary-20241018225046.tgz#ab6ea2420d6bccf7b70e2ee4744bb0a1c89c17e1"
+  integrity sha512-v2f8hQl8VlPZaqs9wQdpWVICZ+HMrS02axxImf98cZZtrg2YmnwpfEPCxpaNUuNZdNekULuheKd1H5/gzRDC3w==
 
-"@solana/rpc-spec@2.0.0-rc.1":
-  version "2.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@solana/rpc-spec/-/rpc-spec-2.0.0-rc.1.tgz#77da589a64be4f48cba2800e4373315d16e0ec16"
-  integrity sha512-E81IoNzLbp24T633klEqlRujd2i/rd8xVkJGt04DL/LGS4/cCWJEhkmOnfljxWafCPUundRXlPtNG3ZmHzEYqA==
+"@solana/rpc-spec@2.0.0-canary-20241018225046":
+  version "2.0.0-canary-20241018225046"
+  resolved "https://registry.yarnpkg.com/@solana/rpc-spec/-/rpc-spec-2.0.0-canary-20241018225046.tgz#8e9e2fc7f520285e5d7d262393d1e6b6ce05b4f2"
+  integrity sha512-itfHwcd82iVeKCWg8Jc8rpszW15E7WihWMrOg4ATEr/Sfundes3CZaa4w6MzXT53MutsjNWljKx4hw+ZKDY+ig==
   dependencies:
-    "@solana/rpc-spec-types" "2.0.0-rc.1"
+    "@solana/errors" "2.0.0-canary-20241018225046"
+    "@solana/rpc-spec-types" "2.0.0-canary-20241018225046"
 
-"@solana/rpc-subscriptions-api@2.0.0-rc.1":
-  version "2.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@solana/rpc-subscriptions-api/-/rpc-subscriptions-api-2.0.0-rc.1.tgz#682a0cc79d16dfebf76ae15ceb00dd0b3afcac9b"
-  integrity sha512-HmuJmB+RnpYzpiwDWncYFey0lrdFt8KbFvH0JvxEB7NX6V9NgGQIwRY1bfoaeSwX6t93p4nBWr2ckJWLNjXzCw==
+"@solana/rpc-subscriptions-api@2.0.0-canary-20241018225046":
+  version "2.0.0-canary-20241018225046"
+  resolved "https://registry.yarnpkg.com/@solana/rpc-subscriptions-api/-/rpc-subscriptions-api-2.0.0-canary-20241018225046.tgz#716c0ff2ca3cf8a9763c5fb2eca4d7a37f2c0c30"
+  integrity sha512-2nk3nagyb1RrxbIKdHp+4EVFqzaUBAVBgNIj4widze6IwDO6bDLGDG49sAll4xCUtleNMjWaEbdyugR0UMBH1g==
   dependencies:
-    "@solana/addresses" "2.0.0-rc.1"
-    "@solana/keys" "2.0.0-rc.1"
-    "@solana/rpc-subscriptions-spec" "2.0.0-rc.1"
-    "@solana/rpc-transformers" "2.0.0-rc.1"
-    "@solana/rpc-types" "2.0.0-rc.1"
-    "@solana/transaction-messages" "2.0.0-rc.1"
-    "@solana/transactions" "2.0.0-rc.1"
+    "@solana/addresses" "2.0.0-canary-20241018225046"
+    "@solana/fast-stable-stringify" "2.0.0-canary-20241018225046"
+    "@solana/keys" "2.0.0-canary-20241018225046"
+    "@solana/rpc-subscriptions-spec" "2.0.0-canary-20241018225046"
+    "@solana/rpc-transformers" "2.0.0-canary-20241018225046"
+    "@solana/rpc-types" "2.0.0-canary-20241018225046"
+    "@solana/transaction-messages" "2.0.0-canary-20241018225046"
+    "@solana/transactions" "2.0.0-canary-20241018225046"
 
-"@solana/rpc-subscriptions-spec@2.0.0-rc.1":
-  version "2.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@solana/rpc-subscriptions-spec/-/rpc-subscriptions-spec-2.0.0-rc.1.tgz#f3513ec12fdd9f12f65d7bcf8e585f358ffd206f"
-  integrity sha512-eXRVlMr9zw4JlBoJgVhFRxFs3Iaowhtt35ZIMD+OoTqgKniL62iGiZ3hXsuMDToMvQCBd0UfI+ZVdF2gLQdg9A==
+"@solana/rpc-subscriptions-channel-websocket@2.0.0-canary-20241018225046":
+  version "2.0.0-canary-20241018225046"
+  resolved "https://registry.yarnpkg.com/@solana/rpc-subscriptions-channel-websocket/-/rpc-subscriptions-channel-websocket-2.0.0-canary-20241018225046.tgz#009e968cf404047e0156bda0974a5943af5df938"
+  integrity sha512-WOphU4DFhBfiN9EVICn79dA6xifql2jehRxfil+NZqaY95uYxu6vTv3YwFbOAT8Ll79+By8NZ7/6DN4t2pYLZg==
   dependencies:
-    "@solana/errors" "2.0.0-rc.1"
-    "@solana/rpc-spec-types" "2.0.0-rc.1"
+    "@solana/errors" "2.0.0-canary-20241018225046"
+    "@solana/functional" "2.0.0-canary-20241018225046"
+    "@solana/rpc-subscriptions-spec" "2.0.0-canary-20241018225046"
+    "@solana/subscribable" "2.0.0-canary-20241018225046"
 
-"@solana/rpc-subscriptions-transport-websocket@2.0.0-rc.1":
-  version "2.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@solana/rpc-subscriptions-transport-websocket/-/rpc-subscriptions-transport-websocket-2.0.0-rc.1.tgz#721a5d029efe18aca6a09cf126c3fcac00e0cf8b"
-  integrity sha512-NxheQmG6Ku9gjF3TyGbM8Nxx6fOU3m89LdfH9SQNu6yME6VXKWuT1LaY24T707yDOoKZJsOWabRrQtNfJ+3HZA==
+"@solana/rpc-subscriptions-spec@2.0.0-canary-20241018225046":
+  version "2.0.0-canary-20241018225046"
+  resolved "https://registry.yarnpkg.com/@solana/rpc-subscriptions-spec/-/rpc-subscriptions-spec-2.0.0-canary-20241018225046.tgz#51e3ea1e592f73deec2f30e66f42ca88793ddf2e"
+  integrity sha512-8OLf7GF2jBNGqsMBBrnOqaYC9L5MrZmdcpamajVWY3pW6/eqvrLazBjzPcvaFt52O1xb31r37z5fVMUKLJAbwg==
   dependencies:
-    "@solana/errors" "2.0.0-rc.1"
-    "@solana/rpc-subscriptions-spec" "2.0.0-rc.1"
+    "@solana/errors" "2.0.0-canary-20241018225046"
+    "@solana/promises" "2.0.0-canary-20241018225046"
+    "@solana/rpc-spec-types" "2.0.0-canary-20241018225046"
+    "@solana/subscribable" "2.0.0-canary-20241018225046"
 
-"@solana/rpc-subscriptions@2.0.0-rc.1":
-  version "2.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@solana/rpc-subscriptions/-/rpc-subscriptions-2.0.0-rc.1.tgz#cd56db7365754a47c1cff8e53dd83d1736b7b965"
-  integrity sha512-gHrVNWEbMi8uDO8BzpJkuDiHMcfD4SrfLRohROnHx0SfSlEGxvIkBjPnwOYIoS7IkWk95e19s7hJoBNn2TX4kw==
+"@solana/rpc-subscriptions@2.0.0-canary-20241018225046":
+  version "2.0.0-canary-20241018225046"
+  resolved "https://registry.yarnpkg.com/@solana/rpc-subscriptions/-/rpc-subscriptions-2.0.0-canary-20241018225046.tgz#60fc875ceaca82500a70a96ee837b6ab3b0384b1"
+  integrity sha512-5dZ+6hbASe70ZiEBI2sni4pUsI0KZVnwmosePqUUUfh+ZDMIZ81otP0uRF3lFy1CTsk+UznebSYPFnh4bi1Agg==
   dependencies:
-    "@solana/errors" "2.0.0-rc.1"
-    "@solana/fast-stable-stringify" "2.0.0-rc.1"
-    "@solana/functional" "2.0.0-rc.1"
-    "@solana/promises" "2.0.0-rc.1"
-    "@solana/rpc-subscriptions-api" "2.0.0-rc.1"
-    "@solana/rpc-subscriptions-spec" "2.0.0-rc.1"
-    "@solana/rpc-subscriptions-transport-websocket" "2.0.0-rc.1"
-    "@solana/rpc-transformers" "2.0.0-rc.1"
-    "@solana/rpc-types" "2.0.0-rc.1"
+    "@solana/errors" "2.0.0-canary-20241018225046"
+    "@solana/functional" "2.0.0-canary-20241018225046"
+    "@solana/promises" "2.0.0-canary-20241018225046"
+    "@solana/rpc-subscriptions-api" "2.0.0-canary-20241018225046"
+    "@solana/rpc-subscriptions-channel-websocket" "2.0.0-canary-20241018225046"
+    "@solana/rpc-subscriptions-spec" "2.0.0-canary-20241018225046"
+    "@solana/rpc-transformers" "2.0.0-canary-20241018225046"
+    "@solana/rpc-types" "2.0.0-canary-20241018225046"
+    "@solana/subscribable" "2.0.0-canary-20241018225046"
 
-"@solana/rpc-transformers@2.0.0-rc.1":
-  version "2.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@solana/rpc-transformers/-/rpc-transformers-2.0.0-rc.1.tgz#41abdecb5e491c2e96824aecec7b8a1153001524"
-  integrity sha512-YM25X4Eeh39UR2AoSrCFn74W99bQk0/DLqyPgZpNBRbszzEifGHqu83NNFwBuPMVc9q7ilf5s6r6pqhWP+5JJw==
+"@solana/rpc-transformers@2.0.0-canary-20241018225046":
+  version "2.0.0-canary-20241018225046"
+  resolved "https://registry.yarnpkg.com/@solana/rpc-transformers/-/rpc-transformers-2.0.0-canary-20241018225046.tgz#6afbcb6d2a140e2679853a6cdd3d09909a589bfe"
+  integrity sha512-mYvtOeNv3Eu7FInL/L3U42KFhjA3mqIOt3bh769Q6gua2Lwze3hJFeNFh+nNoy3yPnyQ9x9ZrOCtPRiwM7tTwg==
   dependencies:
-    "@solana/errors" "2.0.0-rc.1"
-    "@solana/functional" "2.0.0-rc.1"
-    "@solana/rpc-spec" "2.0.0-rc.1"
-    "@solana/rpc-subscriptions-spec" "2.0.0-rc.1"
-    "@solana/rpc-types" "2.0.0-rc.1"
+    "@solana/errors" "2.0.0-canary-20241018225046"
+    "@solana/functional" "2.0.0-canary-20241018225046"
+    "@solana/rpc-spec" "2.0.0-canary-20241018225046"
+    "@solana/rpc-subscriptions-spec" "2.0.0-canary-20241018225046"
+    "@solana/rpc-types" "2.0.0-canary-20241018225046"
 
-"@solana/rpc-transport-http@2.0.0-rc.1":
-  version "2.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@solana/rpc-transport-http/-/rpc-transport-http-2.0.0-rc.1.tgz#cf5737a14a9056cd2d79385d01057b36ad017b79"
-  integrity sha512-Byvn2LnaCgTnEyr78wcgh8SrVHo+L6/l1kXQW05cNAjjbS8d8z4meBUBrXDWHmCsWy7RdnrTcBixPPtE+pUebw==
+"@solana/rpc-transport-http@2.0.0-canary-20241018225046":
+  version "2.0.0-canary-20241018225046"
+  resolved "https://registry.yarnpkg.com/@solana/rpc-transport-http/-/rpc-transport-http-2.0.0-canary-20241018225046.tgz#561c82b38b43bac4e92684671fef9f68dd19b8c4"
+  integrity sha512-5suBbfVaBmrix3k9pfADfjB+xLac1QsFHgSQH1CnX29Ukea41KvUNUT12e7JAtbuZvVrU7uYQA8kPCHR1Rz/dg==
   dependencies:
-    "@solana/errors" "2.0.0-rc.1"
-    "@solana/rpc-spec" "2.0.0-rc.1"
-    undici-types "^6.19.5"
+    "@solana/errors" "2.0.0-canary-20241018225046"
+    "@solana/rpc-spec" "2.0.0-canary-20241018225046"
+    undici-types "^6.20.0"
 
-"@solana/rpc-types@2.0.0-rc.1":
-  version "2.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@solana/rpc-types/-/rpc-types-2.0.0-rc.1.tgz#59f2dd06984ff70c90bd71858f7b4d79b828e621"
-  integrity sha512-EcGx9VXqA0+uYEdaa1lKTaGBVxLyNL8nkecE4GkqQ+ntRyYlNBPecd4b8siQGSleUQa+Tk/VSPUawSkHqNTLug==
+"@solana/rpc-types@2.0.0-canary-20241018225046":
+  version "2.0.0-canary-20241018225046"
+  resolved "https://registry.yarnpkg.com/@solana/rpc-types/-/rpc-types-2.0.0-canary-20241018225046.tgz#ad437690b4527d4e10fb48baddba2399d6e99ae7"
+  integrity sha512-FJ+T9eYPTrsRIJU7PFPyiVZ+mu5Uhubts57kqdYzu7ERJg6Af7A4D4ItO3CtAnsSjp2S9XTtQ6wxSOTZjpwwOw==
   dependencies:
-    "@solana/addresses" "2.0.0-rc.1"
-    "@solana/codecs-core" "2.0.0-rc.1"
-    "@solana/codecs-numbers" "2.0.0-rc.1"
-    "@solana/codecs-strings" "2.0.0-rc.1"
-    "@solana/errors" "2.0.0-rc.1"
+    "@solana/addresses" "2.0.0-canary-20241018225046"
+    "@solana/codecs-core" "2.0.0-canary-20241018225046"
+    "@solana/codecs-numbers" "2.0.0-canary-20241018225046"
+    "@solana/codecs-strings" "2.0.0-canary-20241018225046"
+    "@solana/errors" "2.0.0-canary-20241018225046"
 
-"@solana/rpc@2.0.0-rc.1":
-  version "2.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@solana/rpc/-/rpc-2.0.0-rc.1.tgz#b98c16d8ac5d1d8c0a24a77421d5198be04e2ff8"
-  integrity sha512-upqR/Ae5syzQDZkffTdU/09k1Vx073Gt4xkkpcWaTBmW0obVhrlvJvH2k5jrOQ13BZd2NVg1MWMEOBcy3+nJjQ==
+"@solana/rpc@2.0.0-canary-20241018225046":
+  version "2.0.0-canary-20241018225046"
+  resolved "https://registry.yarnpkg.com/@solana/rpc/-/rpc-2.0.0-canary-20241018225046.tgz#9379d7f03ef1bbe5e0dda49cf18435321035c3d4"
+  integrity sha512-qR/wDhy5Wj9PJA2UlndworAwzAh58oNxN8TAjW/d92dqCXnAq1177o3vK0Unhdq9+360fZn1IZ15mNZmwuKEyQ==
   dependencies:
-    "@solana/errors" "2.0.0-rc.1"
-    "@solana/fast-stable-stringify" "2.0.0-rc.1"
-    "@solana/functional" "2.0.0-rc.1"
-    "@solana/rpc-api" "2.0.0-rc.1"
-    "@solana/rpc-spec" "2.0.0-rc.1"
-    "@solana/rpc-transformers" "2.0.0-rc.1"
-    "@solana/rpc-transport-http" "2.0.0-rc.1"
-    "@solana/rpc-types" "2.0.0-rc.1"
+    "@solana/errors" "2.0.0-canary-20241018225046"
+    "@solana/fast-stable-stringify" "2.0.0-canary-20241018225046"
+    "@solana/functional" "2.0.0-canary-20241018225046"
+    "@solana/rpc-api" "2.0.0-canary-20241018225046"
+    "@solana/rpc-spec" "2.0.0-canary-20241018225046"
+    "@solana/rpc-transformers" "2.0.0-canary-20241018225046"
+    "@solana/rpc-transport-http" "2.0.0-canary-20241018225046"
+    "@solana/rpc-types" "2.0.0-canary-20241018225046"
 
-"@solana/signers@2.0.0-rc.1":
-  version "2.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@solana/signers/-/signers-2.0.0-rc.1.tgz#cb28d5d456b2c4c69d332f6457248cb87410f514"
-  integrity sha512-dv3oKSF+AIaHKpnSkmzEf+jXVcA3nl015+Mp/WQZYzQJS01dlrmnd4N5DOSn2CaPRJ0TLujHkupxkOFXbe149A==
+"@solana/signers@2.0.0-canary-20241018225046":
+  version "2.0.0-canary-20241018225046"
+  resolved "https://registry.yarnpkg.com/@solana/signers/-/signers-2.0.0-canary-20241018225046.tgz#1b0462f03bf8e7b1fac10d17f356a8e5b85fe82c"
+  integrity sha512-mPp7MJnKjx0PNRV3+eC7/1kGX93QDWNGuJ9yN/bUxosL2Ew5b3FBpl3k5DTn3UFIPQ8TYC3xP25WDvb1HQNlag==
   dependencies:
-    "@solana/addresses" "2.0.0-rc.1"
-    "@solana/codecs-core" "2.0.0-rc.1"
-    "@solana/errors" "2.0.0-rc.1"
-    "@solana/instructions" "2.0.0-rc.1"
-    "@solana/keys" "2.0.0-rc.1"
-    "@solana/transaction-messages" "2.0.0-rc.1"
-    "@solana/transactions" "2.0.0-rc.1"
+    "@solana/addresses" "2.0.0-canary-20241018225046"
+    "@solana/codecs-core" "2.0.0-canary-20241018225046"
+    "@solana/errors" "2.0.0-canary-20241018225046"
+    "@solana/instructions" "2.0.0-canary-20241018225046"
+    "@solana/keys" "2.0.0-canary-20241018225046"
+    "@solana/transaction-messages" "2.0.0-canary-20241018225046"
+    "@solana/transactions" "2.0.0-canary-20241018225046"
 
-"@solana/sysvars@2.0.0-rc.1":
-  version "2.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@solana/sysvars/-/sysvars-2.0.0-rc.1.tgz#5f946a91364d1b84124a4c126e8d9be2f3858bca"
-  integrity sha512-nLiuisgbRw7FkJrxPJOBzf0ro7ZCk0gWgMyLQexe9oPoTzdZnWbHI4ldYDmtfdy2dkPBsNTz6sZ6o75HwnGu0A==
+"@solana/subscribable@2.0.0-canary-20241018225046":
+  version "2.0.0-canary-20241018225046"
+  resolved "https://registry.yarnpkg.com/@solana/subscribable/-/subscribable-2.0.0-canary-20241018225046.tgz#5a73ac13ce9818754ebe28fce3ff52d714c2053b"
+  integrity sha512-p/CcDNBVi+OZHKdC7UoDcRhmkT3FmYO+AeKF9Htv9N0JwkR0WDxFqgibm/t5JRy+g6zjO9sEW2ZcOteiA0j3tg==
   dependencies:
-    "@solana/accounts" "2.0.0-rc.1"
-    "@solana/codecs" "2.0.0-rc.1"
-    "@solana/errors" "2.0.0-rc.1"
-    "@solana/rpc-types" "2.0.0-rc.1"
+    "@solana/errors" "2.0.0-canary-20241018225046"
 
-"@solana/transaction-confirmation@2.0.0-rc.1":
-  version "2.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@solana/transaction-confirmation/-/transaction-confirmation-2.0.0-rc.1.tgz#7fb81612823fc372bbc859789c53945a760b588e"
-  integrity sha512-ES671CZUDLaXV46Vv3Kxd22coSQE4DlE7y0s9ChzQ7t4bLGv6DeHlHXU9kQBtou9koLR25wiDUWtvwNUyzUbHw==
+"@solana/sysvars@2.0.0-canary-20241018225046":
+  version "2.0.0-canary-20241018225046"
+  resolved "https://registry.yarnpkg.com/@solana/sysvars/-/sysvars-2.0.0-canary-20241018225046.tgz#570c134da433dc2860ee9c8f3dc8fc86fb69986c"
+  integrity sha512-sACHkAtnSTmOAz5vSBz/KnrIYM6r4jcRw3GK2f7pcxdl1bD3DPRrmXb189ZhAshovjy60hNOlUqMt2gSh3xEzw==
   dependencies:
-    "@solana/addresses" "2.0.0-rc.1"
-    "@solana/codecs-strings" "2.0.0-rc.1"
-    "@solana/errors" "2.0.0-rc.1"
-    "@solana/keys" "2.0.0-rc.1"
-    "@solana/promises" "2.0.0-rc.1"
-    "@solana/rpc" "2.0.0-rc.1"
-    "@solana/rpc-subscriptions" "2.0.0-rc.1"
-    "@solana/rpc-types" "2.0.0-rc.1"
-    "@solana/transaction-messages" "2.0.0-rc.1"
-    "@solana/transactions" "2.0.0-rc.1"
+    "@solana/accounts" "2.0.0-canary-20241018225046"
+    "@solana/codecs" "2.0.0-canary-20241018225046"
+    "@solana/errors" "2.0.0-canary-20241018225046"
+    "@solana/rpc-types" "2.0.0-canary-20241018225046"
 
-"@solana/transaction-messages@2.0.0-rc.1":
-  version "2.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@solana/transaction-messages/-/transaction-messages-2.0.0-rc.1.tgz#929fff4c50f1a5b0ae18ea8d2e0f9ebba7a584dc"
-  integrity sha512-pZTetOtRDwfuK/fyE8FKbtRsLQOTgEIQld3tskB85npUHaEgrnCYzp3nJtMhKOLel3w3f/27VtWLNSrRyyAiew==
+"@solana/transaction-confirmation@2.0.0-canary-20241018225046":
+  version "2.0.0-canary-20241018225046"
+  resolved "https://registry.yarnpkg.com/@solana/transaction-confirmation/-/transaction-confirmation-2.0.0-canary-20241018225046.tgz#fbf340ea1a6f6f1082cfa256ff2b083487dc615e"
+  integrity sha512-/p3myCTz9YQmAT8b/RukC3m+NcSDFFH4DDzk7AS8bQnyeiPR620VonR1gHEdkGyRQ1QONEb/A256JUWUPc871Q==
   dependencies:
-    "@solana/addresses" "2.0.0-rc.1"
-    "@solana/codecs-core" "2.0.0-rc.1"
-    "@solana/codecs-data-structures" "2.0.0-rc.1"
-    "@solana/codecs-numbers" "2.0.0-rc.1"
-    "@solana/errors" "2.0.0-rc.1"
-    "@solana/functional" "2.0.0-rc.1"
-    "@solana/instructions" "2.0.0-rc.1"
-    "@solana/rpc-types" "2.0.0-rc.1"
+    "@solana/addresses" "2.0.0-canary-20241018225046"
+    "@solana/codecs-strings" "2.0.0-canary-20241018225046"
+    "@solana/errors" "2.0.0-canary-20241018225046"
+    "@solana/keys" "2.0.0-canary-20241018225046"
+    "@solana/promises" "2.0.0-canary-20241018225046"
+    "@solana/rpc" "2.0.0-canary-20241018225046"
+    "@solana/rpc-subscriptions" "2.0.0-canary-20241018225046"
+    "@solana/rpc-types" "2.0.0-canary-20241018225046"
+    "@solana/transaction-messages" "2.0.0-canary-20241018225046"
+    "@solana/transactions" "2.0.0-canary-20241018225046"
 
-"@solana/transactions@2.0.0-rc.1":
-  version "2.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@solana/transactions/-/transactions-2.0.0-rc.1.tgz#f3f0c54d08b297f613985a47028a725a331cb50d"
-  integrity sha512-u9MH2Kk4P0E5rNxATdx/ljR2rp34S9VuC3Jzj9nCMKJ0XwvCD+ddTmIDop5Vs+96Ls9SGj0XaKAJtT+9S7SDpw==
+"@solana/transaction-messages@2.0.0-canary-20241018225046":
+  version "2.0.0-canary-20241018225046"
+  resolved "https://registry.yarnpkg.com/@solana/transaction-messages/-/transaction-messages-2.0.0-canary-20241018225046.tgz#1b74fd8ae3c81527b7d1fda989c1bf22b78431c0"
+  integrity sha512-Swm+rfM2sZsr4crf1KnfNhxlBD0zUbItGAnLWsptPj7TIk8cOHylU+2AzCvb+PISU9NrhvSd3wFgCszAjlt4PA==
   dependencies:
-    "@solana/addresses" "2.0.0-rc.1"
-    "@solana/codecs-core" "2.0.0-rc.1"
-    "@solana/codecs-data-structures" "2.0.0-rc.1"
-    "@solana/codecs-numbers" "2.0.0-rc.1"
-    "@solana/codecs-strings" "2.0.0-rc.1"
-    "@solana/errors" "2.0.0-rc.1"
-    "@solana/functional" "2.0.0-rc.1"
-    "@solana/instructions" "2.0.0-rc.1"
-    "@solana/keys" "2.0.0-rc.1"
-    "@solana/rpc-types" "2.0.0-rc.1"
-    "@solana/transaction-messages" "2.0.0-rc.1"
+    "@solana/addresses" "2.0.0-canary-20241018225046"
+    "@solana/codecs-core" "2.0.0-canary-20241018225046"
+    "@solana/codecs-data-structures" "2.0.0-canary-20241018225046"
+    "@solana/codecs-numbers" "2.0.0-canary-20241018225046"
+    "@solana/errors" "2.0.0-canary-20241018225046"
+    "@solana/functional" "2.0.0-canary-20241018225046"
+    "@solana/instructions" "2.0.0-canary-20241018225046"
+    "@solana/rpc-types" "2.0.0-canary-20241018225046"
 
-"@solana/web3.js@^2.0.0-rc.1":
-  version "2.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@solana/web3.js/-/web3.js-2.0.0-rc.1.tgz#92e8ed6722d4c008ca025b2b4a9ac81723b9d42a"
-  integrity sha512-0fE40ZsJuqSOYOWbt8haHBIbhSfGckxJbwWEK+xRQaWr1sY1+MPUDnBawsLf818g9KRSNnS2Y3+/Sve7A3yfBA==
+"@solana/transactions@2.0.0-canary-20241018225046":
+  version "2.0.0-canary-20241018225046"
+  resolved "https://registry.yarnpkg.com/@solana/transactions/-/transactions-2.0.0-canary-20241018225046.tgz#f138ff24246c2818efd0d886b82210f53e6a5cdf"
+  integrity sha512-jANufdhwnqSfQuTOn6BxGbJN0lLvxUscKx0bm3WjhIzJgJoCO2G2kgNOMJA36qKjwtjllbrp5SY6yDzIbscHDg==
   dependencies:
-    "@solana/accounts" "2.0.0-rc.1"
-    "@solana/addresses" "2.0.0-rc.1"
-    "@solana/codecs" "2.0.0-rc.1"
-    "@solana/errors" "2.0.0-rc.1"
-    "@solana/functional" "2.0.0-rc.1"
-    "@solana/instructions" "2.0.0-rc.1"
-    "@solana/keys" "2.0.0-rc.1"
-    "@solana/programs" "2.0.0-rc.1"
-    "@solana/rpc" "2.0.0-rc.1"
-    "@solana/rpc-parsed-types" "2.0.0-rc.1"
-    "@solana/rpc-subscriptions" "2.0.0-rc.1"
-    "@solana/rpc-types" "2.0.0-rc.1"
-    "@solana/signers" "2.0.0-rc.1"
-    "@solana/sysvars" "2.0.0-rc.1"
-    "@solana/transaction-confirmation" "2.0.0-rc.1"
-    "@solana/transaction-messages" "2.0.0-rc.1"
-    "@solana/transactions" "2.0.0-rc.1"
+    "@solana/addresses" "2.0.0-canary-20241018225046"
+    "@solana/codecs-core" "2.0.0-canary-20241018225046"
+    "@solana/codecs-data-structures" "2.0.0-canary-20241018225046"
+    "@solana/codecs-numbers" "2.0.0-canary-20241018225046"
+    "@solana/codecs-strings" "2.0.0-canary-20241018225046"
+    "@solana/errors" "2.0.0-canary-20241018225046"
+    "@solana/functional" "2.0.0-canary-20241018225046"
+    "@solana/instructions" "2.0.0-canary-20241018225046"
+    "@solana/keys" "2.0.0-canary-20241018225046"
+    "@solana/rpc-types" "2.0.0-canary-20241018225046"
+    "@solana/transaction-messages" "2.0.0-canary-20241018225046"
+
+"@solana/web3.js@2.0.0-canary-20241018225046":
+  version "2.0.0-canary-20241018225046"
+  resolved "https://registry.yarnpkg.com/@solana/web3.js/-/web3.js-2.0.0-canary-20241018225046.tgz#4b4d3764d461ca6d67efefc111902a9cd1b41970"
+  integrity sha512-CH/geDQ1mpHkpKA4IAK8AoOnxv3ukEshbPHcnwNXXmHMkL6kndiUs/tOqliYU6NRT4MzQ167Y34OO9BHTeQmmg==
+  dependencies:
+    "@solana/accounts" "2.0.0-canary-20241018225046"
+    "@solana/addresses" "2.0.0-canary-20241018225046"
+    "@solana/codecs" "2.0.0-canary-20241018225046"
+    "@solana/errors" "2.0.0-canary-20241018225046"
+    "@solana/functional" "2.0.0-canary-20241018225046"
+    "@solana/instructions" "2.0.0-canary-20241018225046"
+    "@solana/keys" "2.0.0-canary-20241018225046"
+    "@solana/programs" "2.0.0-canary-20241018225046"
+    "@solana/rpc" "2.0.0-canary-20241018225046"
+    "@solana/rpc-parsed-types" "2.0.0-canary-20241018225046"
+    "@solana/rpc-subscriptions" "2.0.0-canary-20241018225046"
+    "@solana/rpc-types" "2.0.0-canary-20241018225046"
+    "@solana/signers" "2.0.0-canary-20241018225046"
+    "@solana/sysvars" "2.0.0-canary-20241018225046"
+    "@solana/transaction-confirmation" "2.0.0-canary-20241018225046"
+    "@solana/transaction-messages" "2.0.0-canary-20241018225046"
+    "@solana/transactions" "2.0.0-canary-20241018225046"
 
 "@tokenizer/token@^0.3.0":
   version "0.3.0"
@@ -2644,10 +2657,10 @@ unbox-primitive@^1.0.2:
     has-symbols "^1.0.3"
     which-boxed-primitive "^1.0.2"
 
-undici-types@^6.19.5:
-  version "6.19.8"
-  resolved "https://registry.yarnpkg.com/undici-types/-/undici-types-6.19.8.tgz#35111c9d1437ab83a7cdc0abae2f26d88eda0a02"
-  integrity sha512-ve2KP6f/JnbPBFyobGHuerC9g1FYGn/F8n1LWTwNxCEzd6IfqTwUQcNXgEtmmQ6DlRrC1hrSrBnCZPokRrDHjw==
+undici-types@^6.20.0:
+  version "6.20.0"
+  resolved "https://registry.yarnpkg.com/undici-types/-/undici-types-6.20.0.tgz#8171bf22c1f588d1554d55bf204bc624af388433"
+  integrity sha512-Ny6QZ2Nju20vw1SRHe3d9jVu6gJ+4e3+MMpqu7pqE5HT6WsTSlce++GQmK5UXS8mzV8DSYHrQH+Xrf2jVcuKNg==
 
 undici@^5.13.0:
   version "5.20.0"
