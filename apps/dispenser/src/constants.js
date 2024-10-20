@@ -2,7 +2,7 @@ const NETWORKS = {
   polygon: {
     implementation: "EVM",
     name: "Polygon",
-    rpc: "https://polygon.llamarpc.com",
+    rpc: "https://polygon-rpc.com/",
     stablecoins: [
       {
         symbol: "USDC",
@@ -19,7 +19,7 @@ const NETWORKS = {
   base: {
     implementation: "EVM",
     name: "Base",
-    rpc: "https://base.llamarpc.com",
+    rpc: "https://mainnet.base.org",
     stablecoins: [
       {
         symbol: "USDC",
@@ -31,7 +31,7 @@ const NETWORKS = {
   arbitrum: {
     implementation: "EVM",
     name: "Arbitrum",
-    rpc: "https://arbitrum.llamarpc.com",
+    rpc: "https://arb1.arbitrum.io/rpc",
     stablecoins: [
       {
         symbol: "USDC.e",
@@ -48,7 +48,7 @@ const NETWORKS = {
   optimism: {
     implementation: "EVM",
     name: "Optimism",
-    rpc: "https://optimism.llamarpc.com",
+    rpc: "https://rpc.ankr.com/optimism",
     stablecoins: [
       {
         symbol: "USDC",

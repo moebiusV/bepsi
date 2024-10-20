@@ -28,7 +28,7 @@ const dispense = async (pinNo) => {
   try {
     const pin = new Gpio(pinNo, "out");
     pin.writeSync(0);
-    await sleep(2000);
+    await sleep(500);
     pin.writeSync(1);
     console.log(`dispense ${pinNo} successful`);
   } catch (e) {
