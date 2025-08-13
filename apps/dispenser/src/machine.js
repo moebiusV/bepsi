@@ -30,9 +30,9 @@ const dispense = async (pinNo) => {
     pin.writeSync(0);
     await sleep(500);
     pin.writeSync(1);
-    console.log(`dispense ${pinNo} successful`);
-  } catch (e) {
-    console.log("Unable to find GPIO pins, running in simulation..");
+    console.log(`Dispensed pin ${pinNo} successful`);
+  } catch (error) {
+    console.log(error.message);
   }
 
   isDispensing = false;
@@ -83,7 +83,7 @@ const dispenseFromPayments = async (pinNo, currency) => {
     .catch((e) =>
       console.log(`[dispenseFromDiscord] POST TO NOCODE DB FAILURE ${e}`),
     );
-  console.log("dispensing " + pinNo);
+  console.log("Dispensing pin " + pinNo);
   dispense(pinNo);
 };
 
