@@ -23,6 +23,12 @@ const startLightningListener = async () => {
     pinNo = messageStr.split("-")[0];
     dispenseFromPayments(pinNo, "sats");
   });
+  
+ ws.onclose = (event) => {
+    const reconnectInterval = 60000; // 60000 milliseconds = 1 minute
+    console.log("Connection cannot be established. Reconnecting in 1 minute");
+    setTimeout(startLightningListener, reconnectInterval);
+};
 
   // Error handling
   ws.onerror = (error) => {
