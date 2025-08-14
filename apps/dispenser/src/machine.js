@@ -30,7 +30,7 @@ const dispense = async (pinNo) => {
     pin.writeSync(0);
     await sleep(500);
     pin.writeSync(1);
-    console.log(`Dispensed pin ${pinNo} successful`);
+    console.log(`Dispensed pin ${pinNo} successfully`);
   } catch (error) {
     console.log(error.message);
   }

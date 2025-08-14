@@ -33,7 +33,7 @@ const startLightningListener = async () => {
   // Error handling
   ws.onerror = (error) => {
   console.error("WebSocket error:", error.message);
-  });
+  };
 };
 
 module.exports = {
