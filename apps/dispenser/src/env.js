@@ -48,7 +48,7 @@ const hasAnyPaymentSystem = process.env.PAYMENT_ADDRESS ||
                            process.env.SPARK_PAYMENT_AMOUNT; // Spark can work with pin configs
 
 if (!hasAnyPaymentSystem) {
-  console.error("❌ FATAL: No payment system configured. Need at least one of: PAYMENT_ADDRESS, SOLANA_TREASURY_ADDRESS, LIGHTNING_LNBIT_URL, or SPARK_PAYMENT_AMOUNT");
+  console.error("❌ FATAL: No payment system configured. Need at least one of: PAYMENT_ADDRESS, SOLANA_TREASURY_ADDRESS, LIGHTNING_LNBIT_URL, ARKADE_WS_URL, or SPARK_PAYMENT_AMOUNT");
   process.exit(1);
 }
 

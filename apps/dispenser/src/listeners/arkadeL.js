@@ -33,17 +33,25 @@ const startArkadeListener = async () => {
   // Event listener for when a message is received from the server
   await ws.on("message", function message(data) {
     const messageStr = data.toString("utf-8"); // Convert buffer to string
-    console.log("Received message from BTCPay server:", messageStr);
+    console.log("===== WEBSOCKET MESSAGE RECEIVED =====");
+    console.log("Raw message:", messageStr);
+    console.log("Message type:", typeof messageStr);
+    console.log("Message length:", messageStr.length);
+    console.log("======================================");
+
     // example: 518-5000.0
     const parts = messageStr.split("-");
     const pinNo = parts[0];
     const amount = parts[1] ? parseInt(parts[1]) : null;
+
+    console.log("Parsed - Pin:", pinNo, "Amount:", amount);
 
     logPayment(pinNo, "sats", amount, "arkade");
     dispenseFromPayments(pinNo, "sats");
 
     // Notify frontend via SSE
     const drinkName = getPinName(pinNo);
+    console.log("Notifying SSE - Pin:", pinNo, "Address: arkade, Drink:", drinkName);
     notifyPaymentSuccess(pinNo, "arkade", drinkName, "sats", amount);
   });
 
