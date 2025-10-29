@@ -59,30 +59,47 @@ async function main() {
   emojis.forEach(emoji => message.react(emoji))
 
   client.on("messageReactionAdd", async (reaction, user) => {
+    // Log EVERY reaction event we receive
+    console.log(`[Discord] Reaction event received:`, {
+      user: user.tag,
+      userId: user.id,
+      emoji: reaction._emoji.name,
+      messageId: reaction.message.id,
+      timestamp: new Date().toISOString(),
+      count: reaction.count
+    });
+
     // Ignore bot's own reaction
     if (user.id === client.user.id) {
+      console.log(`[Discord] Ignoring bot's own reaction`);
       return;
     }
 
-    // Disreacts it
-    reaction.users.remove(user);
-
     // If the reaction was on the submitted message
     if (reaction.message.id !== message.id) {
+      console.log(`[Discord] Ignoring reaction on wrong message. Expected: ${message.id}, Got: ${reaction.message.id}`);
       return;
     }
 
     // Make sure the reaction is one of the following
     // eslint-disable-next-line
     if (!emojis.includes(reaction._emoji.name)) {
+      console.log(`[Discord] Ignoring invalid emoji: ${reaction._emoji.name}`);
       return;
     }
 
     // eslint-disable-next-line
     const pin = VENDOR_SELECTION_TO_PIN_MAPPING[emojis.indexOf(reaction._emoji.name) + 1]
     if (pin === undefined || pin === null) {
+      console.log(`[Discord] No pin mapping for emoji index ${emojis.indexOf(reaction._emoji.name) + 1}`);
       return;
     }
+
+    console.log(`[Discord] ✅ Processing dispense for pin ${pin} (user: ${user.tag})`);
+
+    // Disreact it
+    await reaction.users.remove(user);
+    console.log(`[Discord] Removed reaction from ${user.tag}`);
 
     dispenseFromDiscord(pin);
   });
