@@ -1,9 +1,15 @@
 const WebSocket = require("ws");
 const { dispenseFromPayments, logPayment } = require("../machine");
+const { notifyPaymentSuccess } = require("../payment-events");
 const { ARKADE_WS_URL } = require("../env");
 
 // WebSocket URL
 const arkWsUrl = ARKADE_WS_URL;
+
+// Get human-readable name for a pin
+const getPinName = (pinNo) => {
+  return process.env[`PIN_${pinNo}_NAME`] || `pin ${pinNo}`;
+};
 
 const startArkadeListener = async () => {
   // Create a new WebSocket connection
@@ -35,6 +41,10 @@ const startArkadeListener = async () => {
 
     logPayment(pinNo, "sats", amount, "arkade");
     dispenseFromPayments(pinNo, "sats");
+
+    // Notify frontend via SSE
+    const drinkName = getPinName(pinNo);
+    notifyPaymentSuccess(pinNo, "arkade", drinkName, "sats", amount);
   });
 
   ws.onclose = (event) => {
