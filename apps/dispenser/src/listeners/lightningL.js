@@ -1,5 +1,5 @@
 const WebSocket = require("ws");
-const { dispenseFromPayments } = require("../machine");
+const { dispenseFromPayments, logPayment } = require("../machine");
 const { LIGHTNING_LNBIT_URL } = require("../env");
 
 // WebSocket URL
@@ -19,8 +19,12 @@ const startLightningListener = async () => {
     //console.log('Received message from server:', data);
     const messageStr = data.toString("utf-8"); // Convert buffer to string
     console.log("Received message from LNbits server:", messageStr);
-    // example: 0-1000
-    pinNo = messageStr.split("-")[0];
+    // example: 0-1000 or 516-1000
+    const parts = messageStr.split("-");
+    const pinNo = parts[0];
+    const amount = parts[1] ? parseInt(parts[1]) : null;
+
+    logPayment(pinNo, "sats", amount, "lightning");
     dispenseFromPayments(pinNo, "sats");
   });
   
