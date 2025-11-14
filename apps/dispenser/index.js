@@ -1,8 +1,9 @@
-const express = require('express');
+const express = require("express");
 const { createExitAwareAbortController } = require("./src/common");
 const { startDiscordListener } = require("./src/listeners/discordL");
 const { startEvmListener } = require("./src/listeners/evmL");
 const { startSolanaListener } = require("./src/listeners/solanaL");
+const { startHyperEvmListener } = require("./src/listeners/hyperEvmL");
 const { startMachineChecker } = require("./src/listeners/machineL");
 const { startArkadeListener } = require("./src/listeners/arkadeL");
 const { startLightningListener } = require("./src/listeners/lightningL");
@@ -19,68 +20,106 @@ const main = async () => {
   setupPaymentEvents(app);
 
   const server = app.listen(3500, () => {
-    console.log('[SSE] Payment events server running on port 3500');
+    console.log("[SSE] Payment events server running on port 3500");
   });
 
   // Start services only if they are properly configured and not disabled
-  if (isServiceEnabled('discord')) {
+  if (isServiceEnabled("discord")) {
     try {
       startDiscordListener();
     } catch (error) {
-      console.error('❌ Discord listener failed to start:', error.message);
+      console.error("❌ Discord listener failed to start:", error.message);
     }
   } else {
-    console.log('[' + new Date().toLocaleTimeString() + '] - Discord listener disabled or misconfigured');
+    console.log(
+      "[" +
+        new Date().toLocaleTimeString() +
+        "] - Discord listener disabled or misconfigured",
+    );
   }
 
-  if (isServiceEnabled('evm')) {
+  if (isServiceEnabled("evm")) {
     try {
       startEvmListener();
     } catch (error) {
-      console.error('❌ EVM listener failed to start:', error.message);
+      console.error("❌ EVM listener failed to start:", error.message);
     }
   } else {
-    console.log('[' + new Date().toLocaleTimeString() + '] - EVM listener disabled or misconfigured');
+    console.log(
+      "[" +
+        new Date().toLocaleTimeString() +
+        "] - EVM listener disabled or misconfigured",
+    );
   }
 
-  if (isServiceEnabled('solana')) {
+  if (isServiceEnabled("hyperevm")) {
+    try {
+      startHyperEvmListener();
+    } catch (error) {
+      console.error("❌ HYPEREVM listener failed to start:", error.message);
+    }
+  } else {
+    console.log(
+      "[" +
+        new Date().toLocaleTimeString() +
+        "] - HYPEREVM listener disabled or misconfigured",
+    );
+  }
+
+  if (isServiceEnabled("solana")) {
     try {
       startSolanaListener(abortController.signal);
     } catch (error) {
-      console.error('❌ Solana listener failed to start:', error.message);
+      console.error("❌ Solana listener failed to start:", error.message);
     }
   } else {
-    console.log('[' + new Date().toLocaleTimeString() + '] - Solana listener disabled or misconfigured');
+    console.log(
+      "[" +
+        new Date().toLocaleTimeString() +
+        "] - Solana listener disabled or misconfigured",
+    );
   }
 
-  if (isServiceEnabled('arkade')) {
+  if (isServiceEnabled("arkade")) {
     try {
       startArkadeListener();
     } catch (error) {
-      console.error('❌ Arkade listener failed to start:', error.message);
+      console.error("❌ Arkade listener failed to start:", error.message);
     }
   } else {
-    console.log('[' + new Date().toLocaleTimeString() + '] - Arkade listener disabled or misconfigured');
+    console.log(
+      "[" +
+        new Date().toLocaleTimeString() +
+        "] - Arkade listener disabled or misconfigured",
+    );
   }
 
-  if (isServiceEnabled('lightning')) {
+  if (isServiceEnabled("lightning")) {
     try {
       startLightningListener();
     } catch (error) {
-      console.error('❌ Lightning listener failed to start:', error.message);
+      console.error("❌ Lightning listener failed to start:", error.message);
     }
   } else {
-    console.log('[' + new Date().toLocaleTimeString() + '] - Lightning listener disabled or misconfigured');
+    console.log(
+      "[" +
+        new Date().toLocaleTimeString() +
+        "] - Lightning listener disabled or misconfigured",
+    );
   }
 
-  if (isServiceEnabled('spark')) {
+  if (isServiceEnabled("spark")) {
     try {
       startSparkListener();
     } catch (error) {
-      console.error('❌ [Spark] Listener failed to start:', error.message);
+      console.error("❌ [Spark] Listener failed to start:", error.message);
     }
   } else {
-    console.log('[' + new Date().toLocaleTimeString() + '] - [Spark] Listener disabled or misconfigured');
+    console.log(
+      "[" +
+        new Date().toLocaleTimeString() +
+        "] - [Spark] Listener disabled or misconfigured",
+    );
   }
 
   // startMachineChecker();
