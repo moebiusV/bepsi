@@ -72,6 +72,11 @@ const NETWORKS = {
         decimals: 6,
         address: "0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb",
       },
+      {
+        symbol: "BESPI",
+        decimals: 18,
+        address: "0xDF400dFcd64590703C7A647141e1a30BE31F8888",
+      },
     ],
   },
   solana: {
