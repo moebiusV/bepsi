@@ -10,7 +10,7 @@ const {
   parseStablecoin,
   randomPin,
 } = require("../common");
-const { PAYMENT_ADDRESS } = require("../env");
+const { HYPEREVM_PAYMENT_ADDRESS } = require("../env");
 
 const tokenAbi = require("../abi/erc20.json");
 abiDecoder.addABI(tokenAbi);
@@ -48,7 +48,9 @@ const handleStablecoinPayments = async (from, amount, network, stablecoin) => {
 
 const startHyperEvmListener = () => {
   console.log("[HYPEREVM] Starting HYPEREVM payment listener");
-  console.log(`[HYPEREVM] Watching for payments to: ${PAYMENT_ADDRESS}`);
+  console.log(
+    `[HYPEREVM] Watching for payments to: ${HYPEREVM_PAYMENT_ADDRESS}`,
+  );
 
   const evmNetworks = Object.values(NETWORKS).filter(
     ({ implementation }) => implementation === "HYPEREVM",
@@ -84,7 +86,11 @@ const startHyperEvmListener = () => {
         `[HYPEREVM] Watching ${stablecoin.symbol} on ${network.name}`,
       );
 
-      const filter = contract.filters.Transfer(null, PAYMENT_ADDRESS, null);
+      const filter = contract.filters.Transfer(
+        null,
+        HYPEREVM_PAYMENT_ADDRESS,
+        null,
+      );
       contract.on(filter, (from, to, amount, event) => {
         handleStablecoinPayments(from, amount, network, stablecoin);
       });
