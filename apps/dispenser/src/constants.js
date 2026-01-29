@@ -93,6 +93,11 @@ const NETWORKS = {
         decimals: 6,
         address: "0x8D82c4E3c936C7B5724A382a9c5a4E6Eb7aB6d5D",
       },
+      {
+        symbol: "BEPSI",
+        decimals: 18,
+        address: "0x5BB078C8aC361be88A27195307138A678562D281",
+      },
     ],
   },
   solana: {
