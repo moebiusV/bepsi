@@ -48,43 +48,52 @@ const handleStablecoinPayments = async (from, amount, network, stablecoin) => {
 
 const startEvmListener = () => {
   console.log("[EVM] Starting EVM payment listener");
-  console.log(`[EVM] Watching for payments to: ${PAYMENT_ADDRESS}`);
 
-  const evmNetworks = Object.values(NETWORKS).filter(({ implementation }) => implementation === "EVM");
+  const evmNetworks = Object.values(NETWORKS).filter(
+    ({ implementation }) => implementation === "EVM",
+  );
 
   evmNetworks.forEach((network) => {
     let provider;
     try {
       provider = new ethers.providers.JsonRpcProvider(network.rpc);
     } catch (error) {
-      console.error(`[EVM] Failed to connect to ${network.name}:`, error.message);
+      console.error(
+        `[EVM] Failed to connect to ${network.name}:`,
+        error.message,
+      );
       return;
     }
 
     for (i in network.stablecoins) {
       const stablecoin = network.stablecoins[i];
+      const paymentAddress = network.paymentAddress || PAYMENT_ADDRESS;
 
       let contract;
       try {
-        contract = new ethers.Contract(
-          stablecoin.address,
-          tokenAbi,
-          provider
-        );
+        contract = new ethers.Contract(stablecoin.address, tokenAbi, provider);
       } catch (error) {
-        console.error(`[EVM] Failed to create contract for ${stablecoin.symbol}:`, error.message);
+        console.error(
+          `[EVM] Failed to create contract for ${stablecoin.symbol}:`,
+          error.message,
+        );
         continue;
       }
 
-      console.log(`[EVM] Watching ${stablecoin.symbol} on ${network.name}`);
+      console.log(
+        `[EVM] Watching ${stablecoin.symbol} on ${network.name} to ${paymentAddress}`,
+      );
 
-      const filter = contract.filters.Transfer(null, PAYMENT_ADDRESS, null);
+      const filter = contract.filters.Transfer(null, paymentAddress, null);
       contract.on(filter, (from, to, amount, event) => {
         handleStablecoinPayments(from, amount, network, stablecoin);
       });
 
       contract.on("error", (error) => {
-        console.error(`[EVM] Contract error for ${stablecoin.symbol} on ${network.name}:`, error.message);
+        console.error(
+          `[EVM] Contract error for ${stablecoin.symbol} on ${network.name}:`,
+          error.message,
+        );
       });
     }
   });
