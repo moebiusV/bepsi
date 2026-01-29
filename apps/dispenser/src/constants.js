@@ -1,3 +1,5 @@
+const { HYPEREVM_PAYMENT_ADDRESS } = require("./env");
+
 const NETWORKS = {
   polygon: {
     implementation: "EVM",
@@ -58,9 +60,10 @@ const NETWORKS = {
     ],
   },
   hyperevm: {
-    implementation: "HYPEREVM",
+    implementation: "EVM",
     name: "Hyperliquid",
     rpc: "https://rpc.hyperliquid.xyz/evm",
+    paymentAddress: HYPEREVM_PAYMENT_ADDRESS,
     stablecoins: [
       {
         symbol: "USDC",
@@ -76,6 +79,19 @@ const NETWORKS = {
         symbol: "BESPI",
         decimals: 18,
         address: "0xDF400dFcd64590703C7A647141e1a30BE31F8888",
+      },
+    ],
+  },
+  citrea: {
+    implementation: "EVM",
+    name: "Citrea",
+    rpc: "https://rpc.mainnet.citrea.xyz",
+    paymentAddress: "0xD5184c0d23f7551DB7c8c4a3a3c5F1685059A09c",
+    stablecoins: [
+      {
+        symbol: "ctUSD",
+        decimals: 6,
+        address: "0x8D82c4E3c936C7B5724A382a9c5a4E6Eb7aB6d5D",
       },
     ],
   },

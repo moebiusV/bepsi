@@ -3,7 +3,6 @@ const { createExitAwareAbortController } = require("./src/common");
 const { startDiscordListener } = require("./src/listeners/discordL");
 const { startEvmListener } = require("./src/listeners/evmL");
 const { startSolanaListener } = require("./src/listeners/solanaL");
-const { startHyperEvmListener } = require("./src/listeners/hyperEvmL");
 const { startMachineChecker } = require("./src/listeners/machineL");
 const { startArkadeListener } = require("./src/listeners/arkadeL");
 const { startLightningListener } = require("./src/listeners/lightningL");
@@ -49,20 +48,6 @@ const main = async () => {
       "[" +
         new Date().toLocaleTimeString() +
         "] - EVM listener disabled or misconfigured",
-    );
-  }
-
-  if (isServiceEnabled("hyperevm")) {
-    try {
-      startHyperEvmListener();
-    } catch (error) {
-      console.error("❌ HYPEREVM listener failed to start:", error.message);
-    }
-  } else {
-    console.log(
-      "[" +
-        new Date().toLocaleTimeString() +
-        "] - HYPEREVM listener disabled or misconfigured",
     );
   }
 
