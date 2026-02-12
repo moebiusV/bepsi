@@ -6,11 +6,6 @@ const { LIGHTNING_LNBIT_URL } = require("../env");
 // WebSocket URL
 const wsUrl = LIGHTNING_LNBIT_URL;
 
-// Get human-readable name for a pin
-const getPinName = (pinNo) => {
-  return process.env[`PIN_${pinNo}_NAME`] || `pin ${pinNo}`;
-};
-
 const startLightningListener = async () => {
   // Create a new WebSocket connection
   const ws = new WebSocket(wsUrl);
@@ -34,9 +29,8 @@ const startLightningListener = async () => {
     dispenseFromPayments(pinNo, "sats");
 
     // Notify frontend via SSE
-    const drinkName = getPinName(pinNo);
-    console.log("Notifying SSE - Pin:", pinNo, "Address: lightning, Drink:", drinkName);
-    notifyPaymentSuccess(pinNo, "lightning", drinkName, "sats", amount);
+    console.log("[Lightning] Notifying SSE - payment received");
+    notifyPaymentSuccess(pinNo, "lightning", null, "sats", amount);
   });
   
  ws.onclose = (event) => {
