@@ -16,12 +16,14 @@ const pinToHopper = {
 };
 
 const listenToGpio = (pinNo) => {
+  const hopperNum = pinToHopper[pinNo];
   let pin;
   try {
     pin = new Gpio(pinNo, "out");
+    console.log(`[Hopper] Started listener for hopper ${hopperNum} (GPIO ${pinNo})`);
   } catch (e) {
     console.log(
-      `[listenToGpio] Running on non pi device for pin ${pinNo}, simulating...`,
+      `[Hopper] Running on non pi device for pin ${pinNo}, simulating...`,
     );
     return;
   }
@@ -33,9 +35,10 @@ const listenToGpio = (pinNo) => {
     () =>
       pin.read(async (err, value) => {
         if (value !== prevValue) {
-          // New value, send to the database
+          const isLow = value === 0;
+          console.log(`[Hopper] Hopper ${hopperNum} state changed: ${isLow ? 'LOW (less than 6 remaining)' : 'FULL'}`);
           prevValue = value;
-          updateInventoryMessage(pinToHopper[pin], value === 0);
+          updateInventoryMessage(hopperNum, isLow);
         }
       }),
     1000, // Every second
@@ -43,6 +46,7 @@ const listenToGpio = (pinNo) => {
 };
 
 const startMachineChecker = async () => {
+  console.log(`[Hopper] Starting hopper detection for ${Object.keys(pinToHopper).length} hoppers...`);
   Object.keys(pinToHopper).forEach((pin) => {
     listenToGpio(pin);
   });
