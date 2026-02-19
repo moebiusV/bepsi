@@ -4,7 +4,7 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "@buildonspark/issuer-sdk": "0.0.99",
+    "@buildonspark/spark-sdk": "0.6.4",
     "@solana-program/token": "^0.3.2",
     "@solana/web3.js": "2.0.0-rc.1",
     "abi-decoder": "^2.4.0",

@@ -3,15 +3,15 @@ const { dispenseFromPayments, logPayment } = require("../machine");
 const { notifyPaymentSuccess } = require("../payment-events");
 
 // Dynamic import for ES modules in CommonJS context
-let IssuerSparkWallet;
+let SparkWallet;
 
 // Load and cache the Spark SDK module
 async function loadSparkSDK() {
-  if (!IssuerSparkWallet) {
-    const module = await import("@buildonspark/issuer-sdk");
-    IssuerSparkWallet = module.IssuerSparkWallet;
+  if (!SparkWallet) {
+    const module = await import("@buildonspark/spark-sdk");
+    SparkWallet = module.SparkWallet;
   }
-  return IssuerSparkWallet;
+  return SparkWallet;
 }
 
 // ============================================================================
@@ -102,6 +102,8 @@ const previousSatsBalances = new Map();
 const previousTokenBalances = new Map();
 let initialBalanceScanComplete = false;
 const satsProcessedViaEvent = new Set();
+const streamDisconnectedAt = new Map(); // pin → timestamp of disconnect
+const DISCONNECT_WARN_MS = 15 * 60 * 1000; // 15 minutes
 
 // ============================================================================
 // Utility Functions
@@ -140,14 +142,15 @@ const getWalletForProduct = async (pinNo) => {
 // ============================================================================
 
 const setupEventEmitterForPin = (pinNo, wallet) => {
-  wallet.on('transfer:claimed', async (transferId) => {
+  wallet.on('transfer:claimed', async (transferId, updatedBalance) => {
     if (!initialBalanceScanComplete) {
       return;
     }
 
     try {
-      const currentBalance = await wallet.getBalance();
-      const currentSatsNum = Number(currentBalance.balance);
+      const currentSatsNum = updatedBalance != null
+        ? Number(updatedBalance)
+        : Number((await wallet.getBalance()).balance);
       const previousSats = previousSatsBalances.get(pinNo) || 0;
       const paymentRequest = pinPaymentAddresses.get(pinNo);
 
@@ -183,11 +186,15 @@ const setupEventEmitterForPin = (pinNo, wallet) => {
   });
 
   wallet.on('stream:connected', () => {
-    console.log(`[Spark] 🔗 EventEmitter connected for pin ${pinNo} (sats detection active)`);
+    if (streamDisconnectedAt.has(pinNo)) {
+      const downtime = Date.now() - streamDisconnectedAt.get(pinNo);
+      console.log(`[Spark] 🔗 EventEmitter reconnected for pin ${pinNo} (was down ${Math.round(downtime / 1000)}s)`);
+      streamDisconnectedAt.delete(pinNo);
+    }
   });
 
   wallet.on('stream:disconnected', (reason) => {
-    console.log(`[Spark] ⚠️  EventEmitter disconnected for pin ${pinNo}: ${reason}`);
+    streamDisconnectedAt.set(pinNo, Date.now());
   });
 };
 
@@ -213,12 +220,9 @@ const checkForTokenPayments = async () => {
           let tokenAmount = 0;
           if (currentBalance.tokenBalances.has(tokenConfig.identifier)) {
             const tokenData = currentBalance.tokenBalances.get(tokenConfig.identifier);
-            if (tokenData && tokenData.balance) {
-              const rawBalance = BigInt(tokenData.balance);
-              // BEPSI tokens have 6 decimals - hardcode since blockchain metadata is wrong
-              const decimals = 6; // tokenData.decimals is returning 0, but BEPSI has 6 decimals
-              const divisor = Math.pow(10, decimals);
-              tokenAmount = Number(rawBalance) / divisor;
+            if (tokenData && tokenData.ownedBalance != null) {
+              const decimals = tokenData.tokenMetadata?.decimals ?? 6;
+              tokenAmount = Number(tokenData.ownedBalance) / Math.pow(10, decimals);
             }
           }
 
@@ -268,6 +272,14 @@ const checkForTokenPayments = async () => {
       console.log('[Spark] - Tokens: Polling (5-second intervals)');
     }
 
+    // Warn if any stream has been disconnected for too long
+    for (const [pinNo, disconnectTime] of streamDisconnectedAt) {
+      const downtime = Date.now() - disconnectTime;
+      if (downtime >= DISCONNECT_WARN_MS) {
+        console.log(`[Spark] ⚠️  EventEmitter for pin ${pinNo} disconnected for ${Math.round(downtime / 60000)}min — sats events may be missed`);
+      }
+    }
+
   } catch (error) {
     console.error(`[Spark] Error checking token payments:`, error.message);
   }
@@ -288,6 +300,7 @@ const sweepAllFundsToTreasury = async () => {
 
   // Sweep from each pin wallet
   const allPins = getVendingPins();
+  let swept = false;
 
   for (const pinNo of allPins) {
     try {
@@ -302,6 +315,7 @@ const sweepAllFundsToTreasury = async () => {
             receiverSparkAddress: treasuryAddress,
             amountSats: availableSats
           });
+          swept = true;
           console.log(`[Spark] ✅ Swept ${availableSats} sats from pin ${pinNo}`);
         } catch (err) {
           console.error(`[Spark] ❌ Failed to sweep ${availableSats} sats from pin ${pinNo}:`, err.message);
@@ -312,11 +326,10 @@ const sweepAllFundsToTreasury = async () => {
       if (balance.tokenBalances && balance.tokenBalances.size > 0) {
         for (const [tokenId, tokenData] of balance.tokenBalances) {
           try {
-            const rawAmount = BigInt(tokenData.balance);
+            const rawAmount = tokenData.ownedBalance;
             if (rawAmount > 0n) {
-              const decimals = tokenData.decimals || 0;
-              const divisor = Math.pow(10, decimals);
-              const tokenAmount = Number(rawAmount) / divisor;
+              const decimals = tokenData.tokenMetadata?.decimals ?? 0;
+              const tokenAmount = Number(rawAmount) / Math.pow(10, decimals);
 
               await pinWallet.transferTokens({
                 tokenIdentifier: tokenId,
@@ -324,6 +337,7 @@ const sweepAllFundsToTreasury = async () => {
                 receiverSparkAddress: treasuryAddress
               });
 
+              swept = true;
               console.log(`[Spark] ✅ Swept ${tokenAmount} tokens from pin ${pinNo}`);
             }
           } catch (tokenErr) {
@@ -336,8 +350,9 @@ const sweepAllFundsToTreasury = async () => {
     }
   }
 
-  // Only log if something was actually swept
-  console.log(`[Spark] Fund sweep complete`);
+  if (swept) {
+    console.log(`[Spark] Fund sweep complete`);
+  }
 };
 
 // ============================================================================
