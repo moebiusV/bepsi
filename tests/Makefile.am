@@ -1,14 +1,14 @@
 AM_CPPFLAGS = -I$(top_srcdir)/compat -I$(top_srcdir)/lib
 AM_CFLAGS = -Wall -Wextra
 
-check_PROGRAMS = test_imsg test_proto test_wsmsg test_web test_qr test_pay test_bepsid
-TESTS = $(check_PROGRAMS) bepsictl.sh qr-decode.sh
-TESTS_ENVIRONMENT = BEPSID=$(abs_top_builddir)/src/bepsid; export BEPSID; BEPSICTL=$(abs_top_builddir)/src/bepsictl; export BEPSICTL; TEST_QR=$(abs_top_builddir)/tests/test_qr; export TEST_QR;
+check_PROGRAMS = test_imsg test_proto test_wsmsg test_web test_qr test_pay test_bepsid inputs_client
+TESTS = test_imsg test_proto test_wsmsg test_web test_qr test_pay test_bepsid bepsictl.sh inputs.sh qr-decode.sh
+TESTS_ENVIRONMENT = BEPSID=$(abs_top_builddir)/src/bepsid; export BEPSID; BEPSICTL=$(abs_top_builddir)/src/bepsictl; export BEPSICTL; TEST_QR=$(abs_top_builddir)/tests/test_qr; export TEST_QR; INPUTS_CLIENT=$(abs_top_builddir)/tests/inputs_client; export INPUTS_CLIENT;
 if BUILD_WATCHERS
 TESTS += watch-ws.sh
 TESTS_ENVIRONMENT += WATCHER=$(abs_top_builddir)/src/bepsi-watch-ws; export WATCHER; FAKE_WS=$(abs_srcdir)/fake_ws.py; export FAKE_WS;
 endif
-EXTRA_DIST = watch-ws.sh fake_ws.py bepsictl.sh httpd.sh web.sh qr-decode.sh
+EXTRA_DIST = watch-ws.sh fake_ws.py bepsictl.sh httpd.sh web.sh qr-decode.sh inputs.sh
 if BUILD_HTTPD
 TESTS += httpd.sh web.sh
 TESTS_ENVIRONMENT += HTTPD=$(abs_top_builddir)/src/bepsi-httpd; export HTTPD; CGI=$(abs_top_builddir)/src/bepsi-cgi; export CGI; WWW_SRC=$(abs_top_srcdir)/www; export WWW_SRC; PASSWD_TOOL=$(abs_top_builddir)/scripts/bepsi-passwd; export PASSWD_TOOL;
@@ -41,3 +41,7 @@ test_qr_LDADD = $(top_builddir)/lib/libbepsi.la \
 test_pay_SOURCES = test_pay.c
 test_pay_LDADD = $(top_builddir)/lib/libbepsi.la \
 		 $(top_builddir)/compat/libcompat.la
+
+inputs_client_SOURCES = inputs_client.c
+inputs_client_LDADD = $(top_builddir)/lib/libbepsi.la \
+		      $(top_builddir)/compat/libcompat.la

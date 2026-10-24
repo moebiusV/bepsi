@@ -41,6 +41,11 @@ static const char *const msg_names[BEPSI_IMSG__LAST] = {
 	[BEPSI_IMSG_STOCK_SET]		= "stock-set",
 	[BEPSI_IMSG_SLOT_SWAP]		= "slot-swap",
 	[BEPSI_IMSG_ADMIN_RESULT]	= "admin-result",
+	[BEPSI_IMSG_INPUT_LIST_REQ]	= "input-list-req",
+	[BEPSI_IMSG_INPUT_LIST]		= "input-list",
+	[BEPSI_IMSG_INPUT_SET]		= "input-set",
+	[BEPSI_IMSG_INPUT_WATCH]	= "input-watch",
+	[BEPSI_IMSG_INPUT_EVENT]	= "input-event",
 };
 
 static const char *const rail_names[BEPSI_RAIL__LAST] = {
@@ -139,4 +144,41 @@ int
 bepsi_slot_swap_valid(const struct bepsi_slot_swap *s)
 {
 	return s->a < BEPSI_MAX_SLOTS && s->b < BEPSI_MAX_SLOTS && s->a != s->b;
+}
+
+/* A label is plain text: terminated, and no control characters. */
+static int
+label_ok(const char *s, size_t len)
+{
+	size_t i;
+
+	if (!terminated(s, len))
+		return 0;
+	for (i = 0; s[i] != '\0'; i++)
+		if ((unsigned char)s[i] < 0x20 || (unsigned char)s[i] == 0x7f)
+			return 0;
+	return 1;
+}
+
+int
+bepsi_input_valid(const struct bepsi_input *in)
+{
+	return in->id < BEPSI_MAX_INPUTS && in->state <= 1 &&
+	    (in->slot < BEPSI_MAX_SLOTS || in->slot == BEPSI_NO_SLOT) &&
+	    label_ok(in->label, sizeof(in->label));
+}
+
+int
+bepsi_input_set_valid(const struct bepsi_input_set *s)
+{
+	return s->id < BEPSI_MAX_INPUTS &&
+	    (s->slot < BEPSI_MAX_SLOTS || s->slot == BEPSI_NO_SLOT) &&
+	    label_ok(s->label, sizeof(s->label));
+}
+
+int
+bepsi_input_event_valid(const struct bepsi_input_event *e)
+{
+	return (e->input < BEPSI_MAX_INPUTS || e->input == BEPSI_INPUT_RESET) &&
+	    e->state <= 1;
 }

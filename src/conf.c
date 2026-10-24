@@ -126,6 +126,74 @@ parse_slot(struct conf *c, char *rest, char *err, size_t errlen,
 	return 0;
 }
 
+static int
+label_ok(const char *s)
+{
+	size_t n = strlen(s);
+
+	if (n == 0 || n >= BEPSI_LABEL_LEN)
+		return 0;
+	for (; *s != '\0'; s++)
+		if ((unsigned char)*s < 0x20 || (unsigned char)*s == 0x7f)
+			return 0;
+	return 1;
+}
+
+static int
+parse_input(struct conf *c, char *rest, char *err, size_t errlen,
+    const char *path, int lineno)
+{
+	struct input_conf *in;
+	char *tok[5], *save = NULL;
+	uint32_t id;
+	int i;
+
+	for (i = 0; i < 5; i++) {
+		tok[i] = strtok_r(i == 0 ? rest : NULL, " \t", &save);
+		if (tok[i] == NULL)
+			return fail(err, errlen, path, lineno, "input: too few fields");
+	}
+	/* The label is the rest of the line. */
+	rest = save;
+	while (rest != NULL && (*rest == ' ' || *rest == '\t'))
+		rest++;
+	if (rest == NULL || *rest == '\0')
+		return fail(err, errlen, path, lineno, "input: missing label");
+	if (!label_ok(rest))
+		return fail(err, errlen, path, lineno, "input: bad label");
+	if (c->ninputs >= BEPSI_MAX_INPUTS)
+		return fail(err, errlen, path, lineno, "too many inputs");
+	if (parse_u32(tok[0], BEPSI_MAX_INPUTS - 1, &id) == -1)
+		return fail(err, errlen, path, lineno, "input: bad id");
+	for (i = 0; (size_t)i < c->ninputs; i++)
+		if (c->inputs[i].id == id)
+			return fail(err, errlen, path, lineno, "input: duplicate id");
+	in = &c->inputs[c->ninputs];
+	memset(in, 0, sizeof(*in));
+	in->id = id;
+	if (copystr(in->chip, sizeof(in->chip), tok[1]) == -1)
+		return fail(err, errlen, path, lineno, "input: bad chip");
+	if (parse_u32(tok[2], 1023, &in->line) == -1)
+		return fail(err, errlen, path, lineno, "input: bad line");
+	if (strcmp(tok[3], "active-low") == 0)
+		in->active_low = 1;
+	else if (strcmp(tok[3], "active-high") == 0)
+		in->active_low = 0;
+	else
+		return fail(err, errlen, path, lineno, "input: polarity must be active-low or active-high");
+	if (strcmp(tok[4], "none") == 0)
+		in->bias = BIAS_NONE;
+	else if (strcmp(tok[4], "pull-up") == 0)
+		in->bias = BIAS_PULL_UP;
+	else if (strcmp(tok[4], "pull-down") == 0)
+		in->bias = BIAS_PULL_DOWN;
+	else
+		return fail(err, errlen, path, lineno, "input: bias must be none, pull-up or pull-down");
+	strcpy(in->label, rest);
+	c->ninputs++;
+	return 0;
+}
+
 int
 conf_load(struct conf *c, const char *path, char *err, size_t errlen)
 {
@@ -171,6 +239,11 @@ conf_load(struct conf *c, const char *path, char *err, size_t errlen)
 
 		if (strcmp(key, "slot") == 0)
 			rc = parse_slot(c, val, err, errlen, path, lineno);
+		else if (strcmp(key, "input") == 0)
+			rc = parse_input(c, val, err, errlen, path, lineno);
+		else if (strcmp(key, "gpio_inputs") == 0)
+			rc = copystr(c->gpio_inputs, sizeof(c->gpio_inputs), val) == 0 ? 0 :
+			    fail(err, errlen, path, lineno, "bad gpio_inputs path");
 		else if (strcmp(key, "socket") == 0)
 			rc = copystr(c->socket, sizeof(c->socket), val) == 0 ? 0 :
 			    fail(err, errlen, path, lineno, "bad socket path");

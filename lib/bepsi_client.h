@@ -44,6 +44,26 @@ int bepsi_client_pay(const char *sockpath, const struct bepsi_paid *p,
 int bepsi_client_wait_result(const char *sockpath, struct bepsi_result *out,
     int timeout_ms);
 
+/* The inputs (switches) with their states, labels and slots. */
+struct bepsi_input_list {
+	uint64_t		seq;	/* sequence number of the latest change */
+	uint32_t		count;
+	struct bepsi_input	in[BEPSI_MAX_INPUTS];
+};
+
+/* Fetch the input list.  Returns 0, or -1 if the daemon did not answer. */
+int bepsi_client_inputs(const char *sockpath, struct bepsi_input_list *out,
+    int timeout_ms);
+
+/* Wait up to timeout_ms for input changes after `since` and store them in
+ * out[0..max-1].  Returns how many (at least one), 0 on timeout, -1 if the
+ * daemon cannot be reached.  An event whose input is BEPSI_INPUT_RESET means
+ * changes were missed (or the daemon restarted): fetch the list again and
+ * continue from its seq.  Asking again from the last seq you saw misses
+ * nothing in between. */
+int bepsi_client_wait_inputs(const char *sockpath, uint64_t since,
+    struct bepsi_input_event *out, size_t max, int timeout_ms);
+
 /* Fetch the slot list into out[0..max-1]; returns how many slots, or -1. */
 int bepsi_client_slots(const char *sockpath, struct bepsi_slot *out,
     size_t max, int timeout_ms);

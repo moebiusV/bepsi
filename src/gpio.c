@@ -47,11 +47,20 @@ struct gpio_slot {
 	char		chip[64];
 };
 
+struct gpio_input {
+	uint32_t	id;
+	uint32_t	line;
+	int		fd;		/* requested line (gpiochip backend) */
+};
+
 struct gpio {
 	int		fake;
 	FILE		*log;
+	char		inputs_file[256];	/* fake backend */
 	size_t		n;
 	struct gpio_slot slots[BEPSI_MAX_SLOTS];
+	size_t		nin;
+	struct gpio_input inputs[BEPSI_MAX_INPUTS];
 };
 
 static void
@@ -105,6 +114,50 @@ set_line(int fd, int active)
 }
 #endif
 
+#ifdef __linux__
+/* Request one line as an input with edge events on both edges and a short
+ * hardware debounce, so a bouncing switch makes one change, not a burst. */
+static int
+request_input(const struct input_conf *ic, char *err, size_t errlen)
+{
+	struct gpio_v2_line_request req;
+	int chip, fd, fl;
+
+	if ((chip = open(ic->chip, O_RDWR | O_CLOEXEC)) == -1) {
+		snprintf(err, errlen, "%s: %s", ic->chip, strerror(errno));
+		return -1;
+	}
+	memset(&req, 0, sizeof(req));
+	req.offsets[0] = ic->line;
+	req.num_lines = 1;
+	strncpy(req.consumer, "bepsid", sizeof(req.consumer) - 1);
+	req.config.flags = GPIO_V2_LINE_FLAG_INPUT |
+	    GPIO_V2_LINE_FLAG_EDGE_RISING | GPIO_V2_LINE_FLAG_EDGE_FALLING;
+	if (ic->active_low)
+		req.config.flags |= GPIO_V2_LINE_FLAG_ACTIVE_LOW;
+	if (ic->bias == BIAS_PULL_UP)
+		req.config.flags |= GPIO_V2_LINE_FLAG_BIAS_PULL_UP;
+	else if (ic->bias == BIAS_PULL_DOWN)
+		req.config.flags |= GPIO_V2_LINE_FLAG_BIAS_PULL_DOWN;
+	req.config.num_attrs = 1;
+	req.config.attrs[0].attr.id = GPIO_V2_LINE_ATTR_ID_DEBOUNCE;
+	req.config.attrs[0].attr.debounce_period_us = 20000;
+	req.config.attrs[0].mask = 1;
+	if (ioctl(chip, GPIO_V2_GET_LINE_IOCTL, &req) == -1) {
+		snprintf(err, errlen, "%s line %u: %s", ic->chip, ic->line,
+		    strerror(errno));
+		close(chip);
+		return -1;
+	}
+	fd = req.fd;
+	close(chip);
+	/* Events are read until there are none, so never block on them. */
+	if ((fl = fcntl(fd, F_GETFL)) != -1)
+		fcntl(fd, F_SETFL, fl | O_NONBLOCK);
+	return fd;
+}
+#endif
+
 struct gpio *
 gpio_open(const struct conf *c, char *err, size_t errlen)
 {
@@ -118,6 +171,9 @@ gpio_open(const struct conf *c, char *err, size_t errlen)
 	g->fake = strcmp(c->gpio, "fake") == 0;
 	for (i = 0; i < BEPSI_MAX_SLOTS; i++)
 		g->slots[i].fd = -1;
+	/* Before anything can fail: gpio_close() closes every fd that is not -1. */
+	for (i = 0; i < BEPSI_MAX_INPUTS; i++)
+		g->inputs[i].fd = -1;
 
 	if (g->fake) {
 		if (c->gpio_log[0] != '\0' &&
@@ -136,6 +192,22 @@ gpio_open(const struct conf *c, char *err, size_t errlen)
 			continue;
 #ifdef __linux__
 		if ((gs->fd = request_line(&c->slots[i], err, errlen)) == -1)
+			goto fail;
+#else
+		snprintf(err, errlen, "the gpiochip backend needs Linux");
+		goto fail;
+#endif
+	}
+	snprintf(g->inputs_file, sizeof(g->inputs_file), "%s", c->gpio_inputs);
+	for (i = 0; i < c->ninputs; i++) {
+		struct gpio_input *gi = &g->inputs[g->nin++];
+
+		gi->id = c->inputs[i].id;
+		gi->line = c->inputs[i].line;
+		if (g->fake)
+			continue;
+#ifdef __linux__
+		if ((gi->fd = request_input(&c->inputs[i], err, errlen)) == -1)
 			goto fail;
 #else
 		snprintf(err, errlen, "the gpiochip backend needs Linux");
@@ -187,6 +259,82 @@ gpio_pulse(struct gpio *g, uint32_t id, uint32_t ms)
 	return -1;
 }
 
+size_t
+gpio_ninputs(const struct gpio *g)
+{
+	return g->nin;
+}
+
+uint32_t
+gpio_input_id(const struct gpio *g, size_t idx)
+{
+	return g->inputs[idx].id;
+}
+
+int
+gpio_input_fd(const struct gpio *g, size_t idx)
+{
+	return g->inputs[idx].fd;
+}
+
+int
+gpio_inputs_are_fake(const struct gpio *g)
+{
+	return g->fake && g->nin > 0;
+}
+
+int
+gpio_input_read(struct gpio *g, size_t idx)
+{
+	struct gpio_input *gi = &g->inputs[idx];
+
+	if (g->fake) {
+		FILE *fp;
+		char line[64];
+		int state = 0;
+
+		if (g->inputs_file[0] == '\0' || (fp = fopen(g->inputs_file, "r")) == NULL)
+			return 0;
+		while (fgets(line, sizeof(line), fp) != NULL) {
+			unsigned ln, v;
+
+			if (sscanf(line, "%u %u", &ln, &v) == 2 && ln == gi->line)
+				state = v != 0;	/* the last line for it wins */
+		}
+		fclose(fp);
+		return state;
+	}
+#ifdef __linux__
+	{
+		struct gpio_v2_line_values v;
+
+		memset(&v, 0, sizeof(v));
+		v.mask = 1;
+		if (ioctl(gi->fd, GPIO_V2_LINE_GET_VALUES_IOCTL, &v) == -1)
+			return -1;
+		return (int)(v.bits & 1);
+	}
+#else
+	return -1;
+#endif
+}
+
+void
+gpio_input_drain(struct gpio *g, size_t idx)
+{
+#ifdef __linux__
+	struct gpio_v2_line_event ev;
+
+	if (g->inputs[idx].fd == -1)
+		return;
+	while (read(g->inputs[idx].fd, &ev, sizeof(ev)) == (ssize_t)sizeof(ev))
+		;
+#else
+	(void)g;
+	(void)idx;
+#endif
+}
+
 void
 gpio_close(struct gpio *g)
 {
@@ -197,6 +345,9 @@ gpio_close(struct gpio *g)
 	for (i = 0; i < BEPSI_MAX_SLOTS; i++)
 		if (g->slots[i].fd != -1)
 			close(g->slots[i].fd);
+	for (i = 0; i < BEPSI_MAX_INPUTS; i++)
+		if (g->inputs[i].fd != -1)
+			close(g->inputs[i].fd);
 	if (g->log != NULL)
 		fclose(g->log);
 	free(g);

@@ -46,6 +46,19 @@ struct gpio *gpio_open(const struct conf *, char *err, size_t errlen);
 /* Energise slot `id` for `ms` milliseconds, then release it.  0 or -1. */
 int gpio_pulse(struct gpio *, uint32_t id, uint32_t ms);
 
+/* Inputs: the switches in the configuration, in its order.  A real input has
+ * a file descriptor to poll for edge events; the fake backend has none and
+ * reads its state from the file named by gpio_inputs ("LINE 0|1" per line), so
+ * the caller polls for it on a short timer. */
+size_t gpio_ninputs(const struct gpio *);
+uint32_t gpio_input_id(const struct gpio *, size_t idx);
+int gpio_input_fd(const struct gpio *, size_t idx);	/* -1 for the fake backend */
+int gpio_inputs_are_fake(const struct gpio *);
+/* The input's present state after polarity: 1 active, 0 inactive; -1 on error. */
+int gpio_input_read(struct gpio *, size_t idx);
+/* Read away the edge events waiting on a real input. */
+void gpio_input_drain(struct gpio *, size_t idx);
+
 void gpio_close(struct gpio *);
 
 #endif /* BEPSI_GPIO_H */

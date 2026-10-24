@@ -48,6 +48,10 @@
 #define BEPSI_SEL_LEN		8	/* selection code, e.g. "A1" */
 #define BEPSI_PRODUCT_LEN	32	/* product name */
 #define BEPSI_MAX_SLOTS		64
+#define BEPSI_MAX_INPUTS	32	/* switches bepsid watches */
+#define BEPSI_LABEL_LEN		32	/* an input's label, incl. NUL */
+#define BEPSI_NO_SLOT		0xFFFFFFFFu	/* an input not tied to a slot */
+#define BEPSI_INPUT_RESET	0xFFFFFFFFu	/* event "input": events were missed */
 
 /* Message types.  0 is reserved so a zeroed header is never valid. */
 enum bepsi_imsg_type {
@@ -61,6 +65,14 @@ enum bepsi_imsg_type {
 	BEPSI_IMSG_STOCK_SET,		/* web -> bepsid: struct bepsi_stock_set */
 	BEPSI_IMSG_SLOT_SWAP,		/* web -> bepsid: struct bepsi_slot_swap */
 	BEPSI_IMSG_ADMIN_RESULT,	/* bepsid -> web: struct bepsi_result */
+	BEPSI_IMSG_INPUT_LIST_REQ,	/* any -> bepsid: no payload */
+	BEPSI_IMSG_INPUT_LIST,		/* bepsid -> any: struct bepsi_input_hdr,
+					 * then hdr.count * struct bepsi_input */
+	BEPSI_IMSG_INPUT_SET,		/* web -> bepsid: struct bepsi_input_set */
+	BEPSI_IMSG_INPUT_WATCH,		/* any -> bepsid: struct bepsi_input_watch;
+					 * replies with every INPUT_EVENT after
+					 * `since`, then each new one as it happens */
+	BEPSI_IMSG_INPUT_EVENT,		/* bepsid -> watchers: struct bepsi_input_event */
 	BEPSI_IMSG__LAST
 };
 
@@ -141,6 +153,47 @@ struct bepsi_slot_swap {
 	uint32_t	b;
 };
 
+/*
+ * Inputs: switches the daemon watches (the hopper-low switches, say).  An
+ * input is "active" when its switch signals, after polarity is applied.  Each
+ * has a label and may be tied to a slot, both set by the owner so they can be
+ * changed when products change.  Every state change is an event with a
+ * sequence number, so a watcher can ask for "everything after N" and miss
+ * nothing; bepsid keeps the last BEPSI_EVENT_RING events.
+ */
+#define BEPSI_EVENT_RING	256
+
+struct bepsi_input {
+	uint32_t	id;
+	uint32_t	state;		/* 0 inactive, 1 active */
+	uint32_t	slot;		/* a slot id, or BEPSI_NO_SLOT */
+	uint32_t	pad;
+	char		label[BEPSI_LABEL_LEN];
+};
+
+struct bepsi_input_hdr {
+	uint64_t	seq;		/* sequence number of the latest event */
+	uint32_t	count;		/* struct bepsi_input that follow */
+	uint32_t	pad;
+};
+
+struct bepsi_input_set {
+	uint32_t	id;
+	uint32_t	slot;		/* a slot id, or BEPSI_NO_SLOT */
+	char		label[BEPSI_LABEL_LEN];
+};
+
+struct bepsi_input_watch {
+	uint64_t	since;		/* send events with seq greater than this */
+};
+
+struct bepsi_input_event {
+	uint64_t	seq;
+	uint64_t	time_ms;	/* Unix time, milliseconds */
+	uint32_t	input;		/* an input id, or BEPSI_INPUT_RESET */
+	uint32_t	state;
+};
+
 /* Sizes are part of the wire format; fail the build if they drift. */
 _Static_assert(sizeof(struct bepsi_hello) == 4, "bepsi_hello size");
 _Static_assert(sizeof(struct bepsi_paid) == 96, "bepsi_paid size");
@@ -148,6 +201,11 @@ _Static_assert(sizeof(struct bepsi_result) == 72, "bepsi_result size");
 _Static_assert(sizeof(struct bepsi_slot) == 60, "bepsi_slot size");
 _Static_assert(sizeof(struct bepsi_stock_set) == 8, "bepsi_stock_set size");
 _Static_assert(sizeof(struct bepsi_slot_swap) == 8, "bepsi_slot_swap size");
+_Static_assert(sizeof(struct bepsi_input) == 48, "bepsi_input size");
+_Static_assert(sizeof(struct bepsi_input_hdr) == 16, "bepsi_input_hdr size");
+_Static_assert(sizeof(struct bepsi_input_set) == 40, "bepsi_input_set size");
+_Static_assert(sizeof(struct bepsi_input_watch) == 8, "bepsi_input_watch size");
+_Static_assert(sizeof(struct bepsi_input_event) == 24, "bepsi_input_event size");
 
 /* Names for logging; never return NULL. */
 const char *bepsi_msg_name(uint32_t type);
@@ -160,5 +218,8 @@ int bepsi_result_valid(const struct bepsi_result *);
 int bepsi_slot_valid(const struct bepsi_slot *);
 int bepsi_stock_set_valid(const struct bepsi_stock_set *);
 int bepsi_slot_swap_valid(const struct bepsi_slot_swap *);
+int bepsi_input_valid(const struct bepsi_input *);
+int bepsi_input_set_valid(const struct bepsi_input_set *);
+int bepsi_input_event_valid(const struct bepsi_input_event *);
 
 #endif /* BEPSI_PROTO_H */

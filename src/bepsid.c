@@ -33,6 +33,7 @@
 #include <sys/queue.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
+#include <sys/uio.h>
 #include <sys/un.h>
 
 #include <errno.h>
@@ -57,6 +58,7 @@
 struct client {
 	struct imsgbuf	ibuf;
 	int		subscribed;
+	int		watching;	/* wants INPUT_EVENTs */
 	int		hello;
 };
 
@@ -65,6 +67,12 @@ static struct db	*db;
 static struct gpio	*gpio;
 static struct conf	 conf;
 static volatile sig_atomic_t stop;
+
+/* The switches: their present state, and the recent state changes numbered so
+ * that a watcher can ask for everything after the last one it saw. */
+static int			in_state[BEPSI_MAX_INPUTS];	/* by input id */
+static struct bepsi_input_event	ring[BEPSI_EVENT_RING];
+static uint64_t			last_seq;
 
 static void
 logmsg(const char *fmt, ...)
@@ -116,6 +124,113 @@ broadcast_result(struct client *sender, uint32_t slot,
 		    clients[i]->subscribed)
 			send_result(clients[i], BEPSI_IMSG_DISPENSE_RESULT, slot,
 			    status, payment_id);
+}
+
+static uint64_t
+now_ms(void)
+{
+	struct timespec ts;
+
+	clock_gettime(CLOCK_REALTIME, &ts);
+	return (uint64_t)ts.tv_sec * 1000 + (uint64_t)ts.tv_nsec / 1000000;
+}
+
+static void
+send_input_event(struct client *c, const struct bepsi_input_event *e)
+{
+	if (imsg_compose(&c->ibuf, BEPSI_IMSG_INPUT_EVENT, 0, 0, -1, e,
+	    sizeof(*e)) == -1)
+		logmsg("cannot queue an input event: %s", strerror(errno));
+}
+
+/* An input changed: number the change, keep it, tell every watcher. */
+static void
+note_input(uint32_t id, int state)
+{
+	struct bepsi_input_event *e = &ring[last_seq % BEPSI_EVENT_RING];
+	struct bepsi_input all[BEPSI_MAX_INPUTS];
+	const char *label = "?";
+	int i, n = db_input_list(db, all, BEPSI_MAX_INPUTS);
+
+	for (i = 0; i < n; i++)
+		if (all[i].id == id)
+			label = all[i].label;
+	e->seq = ++last_seq;
+	e->time_ms = now_ms();
+	e->input = id;
+	e->state = (uint32_t)state;
+	logmsg("input %u (%s) %s", id, label, state ? "active" : "inactive");
+	for (i = 0; i < MAX_CLIENTS; i++)
+		if (clients[i] != NULL && clients[i]->watching)
+			send_input_event(clients[i], e);
+}
+
+/* Read every input; a change from what we knew is an event.  `first` records
+ * the starting states without making events. */
+static void
+scan_inputs(int first)
+{
+	size_t i;
+
+	for (i = 0; i < gpio_ninputs(gpio); i++) {
+		uint32_t id = gpio_input_id(gpio, i);
+		int s = gpio_input_read(gpio, i);
+
+		if (s < 0)
+			continue;
+		if (!first && s != in_state[id])
+			note_input(id, s);
+		in_state[id] = s;
+	}
+}
+
+static void
+handle_input_list(struct client *c)
+{
+	struct bepsi_input_hdr hdr;
+	struct bepsi_input in[BEPSI_MAX_INPUTS];
+	struct iovec iov[2];
+	int i, n = db_input_list(db, in, BEPSI_MAX_INPUTS);
+
+	if (n < 0) {
+		send_result(c, BEPSI_IMSG_ADMIN_RESULT, 0, BEPSI_ERR_INVALID, NULL);
+		return;
+	}
+	for (i = 0; i < n; i++)
+		in[i].state = (uint32_t)in_state[in[i].id];
+	memset(&hdr, 0, sizeof(hdr));
+	hdr.seq = last_seq;
+	hdr.count = (uint32_t)n;
+	iov[0].iov_base = &hdr;
+	iov[0].iov_len = sizeof(hdr);
+	iov[1].iov_base = in;
+	iov[1].iov_len = (size_t)n * sizeof(in[0]);
+	if (imsg_composev(&c->ibuf, BEPSI_IMSG_INPUT_LIST, 0, 0, -1, iov, 2) == -1)
+		logmsg("cannot queue the input list: %s", strerror(errno));
+}
+
+/* A watcher asks for every change after `since`, then each new one. */
+static void
+handle_input_watch(struct client *c, uint64_t since)
+{
+	uint64_t oldest = last_seq > BEPSI_EVENT_RING ? last_seq - BEPSI_EVENT_RING + 1 : 1;
+	uint64_t s;
+
+	c->watching = 1;
+	if (since > last_seq || (last_seq > 0 && since + 1 < oldest)) {
+		/* It is ahead of us (we restarted) or behind what we kept: it
+		 * must fetch the list again. */
+		struct bepsi_input_event reset;
+
+		memset(&reset, 0, sizeof(reset));
+		reset.seq = last_seq;
+		reset.time_ms = now_ms();
+		reset.input = BEPSI_INPUT_RESET;
+		send_input_event(c, &reset);
+		return;
+	}
+	for (s = since + 1; s <= last_seq; s++)
+		send_input_event(c, &ring[(s - 1) % BEPSI_EVENT_RING]);
 }
 
 static void
@@ -210,6 +325,32 @@ handle_msg(struct client *c, struct imsg *m)
 			logmsg("stock of slot %u set to %u", s.slot, s.stock);
 		}
 		send_result(c, BEPSI_IMSG_ADMIN_RESULT, st == BEPSI_OK ? s.slot : 0, st, NULL);
+		break;
+	}
+	case BEPSI_IMSG_INPUT_LIST_REQ:
+		handle_input_list(c);
+		break;
+	case BEPSI_IMSG_INPUT_WATCH: {
+		struct bepsi_input_watch w;
+
+		if (imsg_get_data(m, &w, sizeof(w)) == -1) {
+			send_result(c, BEPSI_IMSG_ADMIN_RESULT, 0, BEPSI_ERR_INVALID, NULL);
+			break;
+		}
+		handle_input_watch(c, w.since);
+		break;
+	}
+	case BEPSI_IMSG_INPUT_SET: {
+		struct bepsi_input_set s;
+		enum bepsi_status st = BEPSI_ERR_INVALID;
+
+		if (imsg_get_data(m, &s, sizeof(s)) == 0 && bepsi_input_set_valid(&s) &&
+		    db_input_set(db, s.id, s.slot, s.label) == 0) {
+			st = BEPSI_OK;
+			logmsg("input %u labelled \"%s\", slot %d", s.id, s.label,
+			    s.slot == BEPSI_NO_SLOT ? -1 : (int)s.slot);
+		}
+		send_result(c, BEPSI_IMSG_ADMIN_RESULT, st == BEPSI_OK ? s.id : 0, st, NULL);
 		break;
 	}
 	case BEPSI_IMSG_SLOT_SWAP: {
@@ -346,6 +487,7 @@ main(int argc, char **argv)
 		logmsg("gpio: %s", err);
 		return 1;
 	}
+	scan_inputs(1);		/* the starting states, which are not events */
 	if ((lfd = listen_socket(conf.socket)) == -1)
 		return 1;
 
@@ -356,12 +498,12 @@ main(int argc, char **argv)
 	sigaction(SIGTERM, &sa, NULL);
 	signal(SIGPIPE, SIG_IGN);
 
-	logmsg("ready on %s (%zu slots, gpio %s)", conf.socket, conf.nslots,
-	    conf.gpio);
+	logmsg("ready on %s (%zu slots, %zu inputs, gpio %s)", conf.socket,
+	    conf.nslots, conf.ninputs, conf.gpio);
 
 	while (!stop) {
-		struct pollfd pfd[1 + MAX_CLIENTS];
-		int idx[1 + MAX_CLIENTS];
+		struct pollfd pfd[1 + MAX_CLIENTS + BEPSI_MAX_INPUTS];
+		int idx[1 + MAX_CLIENTS + BEPSI_MAX_INPUTS];
 		int i, np = 0;
 
 		pfd[np].fd = lfd;
@@ -376,7 +518,16 @@ main(int argc, char **argv)
 				pfd[np].events |= POLLOUT;
 			idx[np++] = i;
 		}
-		if (poll(pfd, (nfds_t)np, -1) == -1) {
+		/* A real input wakes us by its fd; the fake one is looked at on a
+		 * short timer.  Input fds are marked with idx <= -2. */
+		for (i = 0; i < (int)gpio_ninputs(gpio); i++) {
+			if (gpio_input_fd(gpio, (size_t)i) == -1)
+				continue;
+			pfd[np].fd = gpio_input_fd(gpio, (size_t)i);
+			pfd[np].events = POLLIN;
+			idx[np++] = -2 - i;
+		}
+		if (poll(pfd, (nfds_t)np, gpio_inputs_are_fake(gpio) ? 50 : -1) == -1) {
 			if (errno == EINTR)
 				continue;
 			logmsg("poll: %s", strerror(errno));
@@ -388,6 +539,10 @@ main(int argc, char **argv)
 
 			if (pfd[i].revents == 0)
 				continue;
+			if (ci <= -2) {
+				gpio_input_drain(gpio, (size_t)(-2 - ci));
+				continue;
+			}
 			if (ci == -1) {
 				int fd = accept4(lfd, NULL, NULL, SOCK_NONBLOCK | SOCK_CLOEXEC);
 				int slot;
@@ -437,6 +592,8 @@ main(int argc, char **argv)
 			if (drop)
 				drop_client(ci);
 		}
+		/* Events are drained now, so what we read is the latest. */
+		scan_inputs(0);
 	}
 
 	logmsg("stopping");

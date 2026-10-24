@@ -233,6 +233,96 @@ out:
 }
 
 int
+bepsi_client_inputs(const char *sockpath, struct bepsi_input_list *out,
+    int timeout_ms)
+{
+	uint8_t buf[sizeof(struct bepsi_input_hdr) +
+	    BEPSI_MAX_INPUTS * sizeof(struct bepsi_input)];
+	struct bepsi_input_hdr hdr;
+	size_t got;
+	uint32_t i;
+
+	if (exchange(sockpath, BEPSI_IMSG_INPUT_LIST_REQ, NULL, 0,
+	    BEPSI_IMSG_INPUT_LIST, buf, sizeof(buf), &got, timeout_ms) == -1 ||
+	    got < sizeof(hdr))
+		return -1;
+	memcpy(&hdr, buf, sizeof(hdr));
+	if (hdr.count > BEPSI_MAX_INPUTS ||
+	    got != sizeof(hdr) + hdr.count * sizeof(struct bepsi_input))
+		return -1;
+	memcpy(out->in, buf + sizeof(hdr), hdr.count * sizeof(struct bepsi_input));
+	for (i = 0; i < hdr.count; i++)
+		if (!bepsi_input_valid(&out->in[i]))
+			return -1;
+	out->seq = hdr.seq;
+	out->count = hdr.count;
+	return 0;
+}
+
+int
+bepsi_client_wait_inputs(const char *sockpath, uint64_t since,
+    struct bepsi_input_event *out, size_t max, int timeout_ms)
+{
+	struct imsgbuf ib;
+	struct imsg m;
+	struct bepsi_hello hello = { BEPSI_PROTO_VERSION };
+	struct bepsi_input_watch w = { since };
+	struct pollfd pfd;
+	size_t n = 0;
+	int fd, rc = -1, left = timeout_ms, grace = 0;
+
+	if ((fd = connect_to(sockpath)) == -1)
+		return -1;
+	if (imsgbuf_init(&ib, fd) == -1) {
+		close(fd);
+		return -1;
+	}
+	if (imsg_compose(&ib, BEPSI_IMSG_HELLO, 0, 0, -1, &hello,
+	    sizeof(hello)) == -1 ||
+	    imsg_compose(&ib, BEPSI_IMSG_INPUT_WATCH, 0, 0, -1, &w, sizeof(w)) == -1 ||
+	    imsgbuf_flush(&ib) == -1)
+		goto out;
+	rc = 0;
+	pfd.fd = fd;
+	pfd.events = POLLIN;
+	while (left > 0 && n < max) {
+		int r = imsgbuf_get(&ib, &m);
+
+		if (r == -1) {
+			rc = -1;
+			goto out;
+		}
+		if (r == 1) {
+			struct bepsi_input_event e;
+			int ok = imsg_get_type(&m) == BEPSI_IMSG_INPUT_EVENT &&
+			    imsg_get_data(&m, &e, sizeof(e)) == 0 &&
+			    bepsi_input_event_valid(&e);
+
+			imsg_free(&m);
+			if (ok)
+				out[n++] = e;
+			continue;
+		}
+		/* Once we have something, wait only a moment for the rest of a
+		 * burst (the backlog arrives together). */
+		if (poll(&pfd, 1, n > 0 ? 30 : (left > 200 ? 200 : left)) > 0) {
+			if (imsgbuf_read(&ib) != 1) {
+				rc = n > 0 ? 0 : -1;
+				goto out;
+			}
+		} else if (n > 0) {
+			if (++grace >= 1)
+				break;
+		} else
+			left -= 200;
+	}
+out:
+	imsgbuf_clear(&ib);
+	close(fd);
+	return rc == -1 ? -1 : (int)n;
+}
+
+int
 bepsi_client_slots(const char *sockpath, struct bepsi_slot *out, size_t max,
     int timeout_ms)
 {

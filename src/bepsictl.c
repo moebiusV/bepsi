@@ -24,6 +24,9 @@
  *   bepsictl list                 show the slots, their products and stock
  *   bepsictl stock SLOT COUNT     set a slot's stock
  *   bepsictl swap A B             swap the products (and stock) of two slots
+ *   bepsictl inputs               show the switches and whether each is active
+ *   bepsictl label INPUT SLOT|- LABEL...   name a switch, and tie it to a slot
+ *   bepsictl watch                print switch changes as they happen
  *   bepsictl vend SLOT ID         dispense one by hand, e.g. to make good a
  *                                 payment the daemon marked "unknown"; ID is
  *                                 recorded in the ledger and must be new
@@ -43,6 +46,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "bepsi_client.h"
 
@@ -56,6 +60,9 @@ usage(FILE *out)
 	    "       bepsictl [-s SOCKET] stock SLOT COUNT\n"
 	    "       bepsictl [-s SOCKET] swap SLOT SLOT\n"
 	    "       bepsictl [-s SOCKET] vend SLOT ID\n"
+	    "       bepsictl [-s SOCKET] inputs\n"
+	    "       bepsictl [-s SOCKET] label INPUT SLOT|- LABEL...\n"
+	    "       bepsictl [-s SOCKET] watch\n"
 	    "Control a running bepsid.\n\n"
 	    "  -s, --socket=PATH  bepsid's socket (default %s)\n"
 	    "      --help         display this help and exit\n"
@@ -173,6 +180,96 @@ main(int argc, char **argv)
 		rc = bepsi_client_admin(sock, BEPSI_IMSG_SLOT_SWAP, &w, sizeof(w),
 		    &st, TIMEOUT_MS);
 		return report("swap", rc, st);
+	}
+	if (strcmp(cmd, "inputs") == 0 && argc == 1) {
+		struct bepsi_input_list il;
+		uint32_t i;
+
+		if (bepsi_client_inputs(sock, &il, TIMEOUT_MS) == -1) {
+			fprintf(stderr, "bepsictl: no answer from bepsid\n");
+			return 2;
+		}
+		printf("%-5s %-6s %-5s %s\n", "INPUT", "STATE", "SLOT", "LABEL");
+		for (i = 0; i < il.count; i++) {
+			if (il.in[i].slot == BEPSI_NO_SLOT)
+				printf("%-5u %-6s %-5s %s\n", il.in[i].id,
+				    il.in[i].state ? "ON" : "off", "-", il.in[i].label);
+			else
+				printf("%-5u %-6s %-5u %s\n", il.in[i].id,
+				    il.in[i].state ? "ON" : "off", il.in[i].slot,
+				    il.in[i].label);
+		}
+		return 0;
+	}
+	if (strcmp(cmd, "label") == 0 && argc >= 4) {
+		struct bepsi_input_set is;
+		char text[BEPSI_LABEL_LEN + 64] = "";
+		int k;
+
+		memset(&is, 0, sizeof(is));
+		if (parse_u32(argv[1], BEPSI_MAX_INPUTS - 1, &is.id) == -1 ||
+		    (strcmp(argv[2], "-") != 0 &&
+		    parse_u32(argv[2], BEPSI_MAX_SLOTS - 1, &is.slot) == -1)) {
+			usage(stderr);
+			return 2;
+		}
+		if (strcmp(argv[2], "-") == 0)
+			is.slot = BEPSI_NO_SLOT;
+		for (k = 3; k < argc; k++) {
+			if (strlen(text) + strlen(argv[k]) + 2 > sizeof(text))
+				break;
+			if (k > 3)
+				strcat(text, " ");
+			strcat(text, argv[k]);
+		}
+		if (strlen(text) >= sizeof(is.label)) {
+			fprintf(stderr, "bepsictl: the label is longer than %d characters\n",
+			    BEPSI_LABEL_LEN - 1);
+			return 2;
+		}
+		strcpy(is.label, text);
+		rc = bepsi_client_admin(sock, BEPSI_IMSG_INPUT_SET, &is, sizeof(is),
+		    &st, TIMEOUT_MS);
+		return report("label", rc, st);
+	}
+	if (strcmp(cmd, "watch") == 0 && argc == 1) {
+		struct bepsi_input_list il;
+		struct bepsi_input_event ev[32];
+		uint64_t since;
+		int n, i;
+		uint32_t k;
+
+		if (bepsi_client_inputs(sock, &il, TIMEOUT_MS) == -1) {
+			fprintf(stderr, "bepsictl: no answer from bepsid\n");
+			return 2;
+		}
+		since = il.seq;
+		for (;;) {
+			n = bepsi_client_wait_inputs(sock, since, ev, 32, 20000);
+			if (n < 0) {
+				fprintf(stderr, "bepsictl: lost bepsid\n");
+				return 2;
+			}
+			for (i = 0; i < n; i++) {
+				char ts[16];
+				time_t t = (time_t)(ev[i].time_ms / 1000);
+				const char *label = "?";
+
+				if (ev[i].input == BEPSI_INPUT_RESET) {
+					if (bepsi_client_inputs(sock, &il, TIMEOUT_MS) == 0)
+						since = il.seq;
+					continue;
+				}
+				for (k = 0; k < il.count; k++)
+					if (il.in[k].id == ev[i].input)
+						label = il.in[k].label;
+				strftime(ts, sizeof(ts), "%H:%M:%S", localtime(&t));
+				printf("%s input %u (%s) %s\n", ts, ev[i].input, label,
+				    ev[i].state ? "active" : "inactive");
+				fflush(stdout);
+				since = ev[i].seq;
+			}
+		}
 	}
 	if (strcmp(cmd, "vend") == 0 && argc == 3) {
 		struct bepsi_paid p;

@@ -50,6 +50,10 @@ static const char schema[] =
     " capacity INTEGER NOT NULL CHECK (capacity > 0),"
     " enabled INTEGER NOT NULL DEFAULT 1,"
     " CHECK (stock <= capacity));"
+    "CREATE TABLE IF NOT EXISTS inputs ("
+    " id INTEGER PRIMARY KEY,"
+    " label TEXT NOT NULL,"
+    " slot INTEGER REFERENCES slots(id) ON DELETE SET NULL);"
     "CREATE TABLE IF NOT EXISTS payments ("
     " rail INTEGER NOT NULL,"
     " payment_id TEXT NOT NULL,"
@@ -130,6 +134,19 @@ db_seed(struct db *d, const struct conf *c)
 			rc = -1;
 	}
 	sqlite3_finalize(st);
+	if (rc == 0 && sqlite3_prepare_v2(d->h,
+	    "INSERT OR IGNORE INTO inputs (id, label) VALUES (?1, ?2)",
+	    -1, &st, NULL) == SQLITE_OK) {
+		for (i = 0; i < c->ninputs && rc == 0; i++) {
+			sqlite3_reset(st);
+			sqlite3_bind_int(st, 1, (int)c->inputs[i].id);
+			sqlite3_bind_text(st, 2, c->inputs[i].label, -1, SQLITE_STATIC);
+			if (sqlite3_step(st) != SQLITE_DONE)
+				rc = -1;
+		}
+		sqlite3_finalize(st);
+	} else if (rc == 0)
+		rc = -1;
 	if (rc == 0)
 		rc = exec(d, "COMMIT");
 	if (rc == -1)
@@ -171,6 +188,51 @@ db_slot_list(struct db *d, struct bepsi_slot *out, size_t max)
 	}
 	sqlite3_finalize(st);
 	return (int)n;
+}
+
+int
+db_input_list(struct db *d, struct bepsi_input *out, size_t max)
+{
+	sqlite3_stmt *st;
+	size_t n = 0;
+
+	if (sqlite3_prepare_v2(d->h,
+	    "SELECT id, slot, label FROM inputs ORDER BY id", -1, &st, NULL) != SQLITE_OK)
+		return -1;
+	while (n < max && sqlite3_step(st) == SQLITE_ROW) {
+		struct bepsi_input *in = &out[n++];
+
+		memset(in, 0, sizeof(*in));
+		in->id = (uint32_t)sqlite3_column_int(st, 0);
+		in->slot = sqlite3_column_type(st, 1) == SQLITE_NULL ? BEPSI_NO_SLOT :
+		    (uint32_t)sqlite3_column_int(st, 1);
+		snprintf(in->label, sizeof(in->label), "%s",
+		    (const char *)sqlite3_column_text(st, 2));
+	}
+	sqlite3_finalize(st);
+	return (int)n;
+}
+
+int
+db_input_set(struct db *d, uint32_t id, uint32_t slot, const char *label)
+{
+	sqlite3_stmt *st;
+	int rc = -1;
+
+	if (sqlite3_prepare_v2(d->h, "UPDATE inputs SET label=?2, slot=?3 WHERE id=?1",
+	    -1, &st, NULL) != SQLITE_OK)
+		return -1;
+	sqlite3_bind_int64(st, 1, id);
+	sqlite3_bind_text(st, 2, label, -1, SQLITE_STATIC);
+	if (slot == BEPSI_NO_SLOT)
+		sqlite3_bind_null(st, 3);
+	else
+		sqlite3_bind_int64(st, 3, slot);
+	/* A slot that does not exist breaks the foreign key and the step fails. */
+	if (sqlite3_step(st) == SQLITE_DONE && sqlite3_changes(d->h) == 1)
+		rc = 0;
+	sqlite3_finalize(st);
+	return rc;
 }
 
 int

@@ -160,6 +160,28 @@ and 2 for a usage error or if the daemon cannot be reached. Manual vends are
 recorded in the ledger on the `manual` rail, which is how to make good a
 payment that `bepsid` marked `unknown`.
 
+## Switches (inputs)
+
+`bepsid` also watches switches such as the hopper-low switches, read from the
+`input` lines of its configuration (the kernel's GPIO edge events, with a 20 ms
+hardware debounce, so a bouncing switch makes one change). Each switch has an
+owner-editable **label** and an optional **slot** it is tied to, kept in the
+database so they can be changed when products change.
+
+Every change is a numbered event. A watcher asks for "everything after N", so it
+misses nothing even if it was not listening for a moment, and is told to fetch
+the list again if the daemon restarted or it fell too far behind. From a shell:
+
+```
+bepsictl inputs                      # each switch: ON/off, slot, label
+bepsictl watch                       # prints changes as they happen; press a switch to see it
+bepsictl label 3 1 Hopper 3 (Tea)    # name switch 3 and tie it to slot 1; "-" for no slot
+```
+
+This is how to find out which switch is which on the machine: run `watch`,
+press one, and see which input number lights up. The admin page does the same
+live.
+
 ## bepsi-watch-ws, the websocket payment watchers
 
 One program, `bepsi-watch-ws`, covers the two rails that notify over a

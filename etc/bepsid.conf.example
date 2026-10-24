@@ -22,3 +22,19 @@ slot 2 3 column /dev/gpiochip0  6 active-low 10 Poppi
 slot 3 4 column /dev/gpiochip0 12 active-low 10 Bubbly
 slot 4 5 column /dev/gpiochip0 13 active-low 10 Cooler
 slot 5 6 column /dev/gpiochip0 16 active-low 10 Beer
+
+# Switches the daemon watches: INPUT ID CHIP LINE POLARITY BIAS LABEL...
+# These are the hopper-level switches of the old JavaScript service (sysfs pins
+# 529-533, i.e. BCM GPIO 17-21).  That service read 0 as "hopper low", so they
+# are active-low.  It never set a pull resistor, so the bias is "none" here;
+# if a switch floats, try pull-up.  Check each one with `bepsictl watch` while
+# you press it by hand: that service opened them as *outputs* and read them
+# back, so it is not certain its readings ever followed the switches.
+# The label is only a first name: the owner renames each switch and ties it to
+# a slot from the admin page (or `bepsictl label`), and that is kept in the
+# database.
+input 2 /dev/gpiochip0 17 active-low none Hopper 2 low
+input 3 /dev/gpiochip0 18 active-low none Hopper 3 low
+input 4 /dev/gpiochip0 19 active-low none Hopper 4 low
+input 5 /dev/gpiochip0 20 active-low none Hopper 5 low
+input 6 /dev/gpiochip0 21 active-low none Hopper 6 low

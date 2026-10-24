@@ -29,6 +29,8 @@
  *   gpio_log  /tmp/gpio.log           (fake backend only)
  *   pulse_ms  500
  *   slot ID SELECTION column|cubby CHIP LINE active-low|active-high CAPACITY PRODUCT...
+ *   input ID CHIP LINE active-low|active-high none|pull-up|pull-down LABEL...
+ *   gpio_inputs /tmp/inputs           (fake backend: "LINE 0|1" lines)
  *
  * A slot line ties a slot to a GPIO line (hardware fact, kept here) and gives
  * its initial product; the owner later changes products and stock in the
@@ -54,14 +56,30 @@ struct slot_conf {
 	char		product[BEPSI_PRODUCT_LEN];
 };
 
+enum input_bias { BIAS_NONE = 0, BIAS_PULL_UP, BIAS_PULL_DOWN };
+
+/* A switch the daemon watches, such as a hopper-low switch.  The label here is
+ * only the first one: the owner changes it later, in the database. */
+struct input_conf {
+	uint32_t	id;
+	uint32_t	line;
+	int		active_low;
+	int		bias;		/* enum input_bias */
+	char		chip[64];
+	char		label[BEPSI_LABEL_LEN];
+};
+
 struct conf {
 	char		socket[256];
 	char		db[256];
 	char		gpio[16];	/* "gpiochip" or "fake" */
 	char		gpio_log[256];
+	char		gpio_inputs[256];	/* fake backend only */
 	uint32_t	pulse_ms;
 	size_t		nslots;
 	struct slot_conf slots[BEPSI_MAX_SLOTS];
+	size_t		ninputs;
+	struct input_conf inputs[BEPSI_MAX_INPUTS];
 };
 
 /* Parse path into c.  Returns 0, or -1 with a message in err. */

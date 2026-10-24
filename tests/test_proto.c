@@ -85,6 +85,49 @@ test_validators(void)
 	s.stock = 11;
 	CHECK(!bepsi_slot_valid(&s));		/* more than capacity */
 
+	{
+		struct bepsi_input in;
+		struct bepsi_input_set is;
+		struct bepsi_input_event ev;
+
+		memset(&in, 0, sizeof(in));
+		strcpy(in.label, "Hopper 2");
+		in.slot = BEPSI_NO_SLOT;
+		CHECK(bepsi_input_valid(&in));
+		in.slot = 3;
+		CHECK(bepsi_input_valid(&in));
+		in.slot = BEPSI_MAX_SLOTS;
+		CHECK(!bepsi_input_valid(&in));		/* neither a slot nor none */
+		in.slot = 0;
+		in.state = 2;
+		CHECK(!bepsi_input_valid(&in));
+		in.state = 0;
+		memset(in.label, 'x', sizeof(in.label));
+		CHECK(!bepsi_input_valid(&in));		/* label not terminated */
+
+		memset(&is, 0, sizeof(is));
+		is.id = 5;
+		is.slot = BEPSI_NO_SLOT;
+		strcpy(is.label, "Spare");
+		CHECK(bepsi_input_set_valid(&is));
+		is.id = BEPSI_MAX_INPUTS;
+		CHECK(!bepsi_input_set_valid(&is));
+		is.id = 5;
+		is.label[2] = '\n';
+		CHECK(!bepsi_input_set_valid(&is));	/* control character */
+		is.label[2] = 'a';
+		is.label[1] = 0x7f;
+		CHECK(!bepsi_input_set_valid(&is));
+
+		memset(&ev, 0, sizeof(ev));
+		ev.input = BEPSI_INPUT_RESET;
+		CHECK(bepsi_input_event_valid(&ev));
+		ev.input = 3;
+		CHECK(bepsi_input_event_valid(&ev));
+		ev.input = BEPSI_MAX_INPUTS;
+		CHECK(!bepsi_input_event_valid(&ev));
+	}
+
 	CHECK(bepsi_slot_swap_valid(&w));
 	w.b = 1;
 	CHECK(!bepsi_slot_swap_valid(&w));	/* swap with itself */

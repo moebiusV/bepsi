@@ -55,6 +55,11 @@ int db_slot_list(struct db *, struct bepsi_slot *out, size_t max);
 int db_stock_set(struct db *, uint32_t slot, uint32_t stock);
 int db_slot_swap(struct db *, uint32_t a, uint32_t b);
 
+/* Inputs (switches): the owner-editable label and slot of each.  The states
+ * are not stored; out[].state is 0 and the caller fills it in. */
+int db_input_list(struct db *, struct bepsi_input *out, size_t max);
+int db_input_set(struct db *, uint32_t id, uint32_t slot, const char *label);
+
 /* Claim a payment.  Returns BEPSI_OK (stock taken, caller must call
  * db_payment_finish), or the status explaining the refusal. */
 enum bepsi_status db_payment_claim(struct db *, const struct bepsi_paid *);
