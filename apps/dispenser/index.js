@@ -9,6 +9,9 @@ const { startLightningListener } = require("./src/listeners/lightningL");
 const { startSparkListener } = require("./src/listeners/sparkL");
 const { isServiceEnabled } = require("./src/env");
 const { setupPaymentEvents } = require("./src/payment-events");
+const { installProcessHandlers, startMemoryGuard, setupHealthEndpoint } = require("./src/health");
+
+installProcessHandlers();
 
 const main = async () => {
   const abortController = createExitAwareAbortController();
@@ -17,6 +20,8 @@ const main = async () => {
   // Broadcasts real-time payment notifications to connected frontend clients
   const app = express();
   setupPaymentEvents(app);
+  setupHealthEndpoint(app);
+  startMemoryGuard();
 
   const server = app.listen(3500, () => {
     console.log("[SSE] Payment events server running on port 3500");

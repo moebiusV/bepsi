@@ -41,7 +41,10 @@ const dispense = async (pinNo) => {
 
 // Wrapper around this so we can easily keep track of things io nocodedb
 const dispenseFromDiscord = async (pinNo) => {
-  await axios
+  // Dispense first; log to NocoDB in the background so a slow/unreachable DB can't delay it.
+  dispense(pinNo);
+
+  axios
     .post(
       NOCO_CREATE_NEW_PURCHASE_URL,
       {
@@ -50,6 +53,7 @@ const dispenseFromDiscord = async (pinNo) => {
         item: getDispenseItemGivenPin(pinNo),
       },
       {
+        timeout: 3000,
         headers: {
           accept: "application/json",
           "xc-token": NOCODB_API_TOKEN,
@@ -60,8 +64,6 @@ const dispenseFromDiscord = async (pinNo) => {
     .catch((e) =>
       console.log(`[dispenseFromDiscord] POST TO NOCODE DB FAILURE ${e}`),
     );
-
-  dispense(pinNo);
 };
 
 const dispenseFromPayments = async (pinNo, currency) => {
@@ -82,6 +84,7 @@ const logPayment = async (pinNo, currency, amount = null, paymentMethod = "unkno
         item: getDispenseItemGivenPin(pinNo),
       },
       {
+        timeout: 3000,
         headers: {
           accept: "application/json",
           "xc-token": NOCODB_API_TOKEN,

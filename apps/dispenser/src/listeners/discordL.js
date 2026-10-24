@@ -97,11 +97,16 @@ async function main() {
 
     console.log(`[Discord] ✅ Processing dispense for pin ${pin} (user: ${user.tag})`);
 
-    // Disreact it
-    await reaction.users.remove(user);
-    console.log(`[Discord] Removed reaction from ${user.tag}`);
-
+    // Dispense first: a failing Discord API call must never cost someone their drink.
     dispenseFromDiscord(pin);
+
+    // Disreact it
+    try {
+      await reaction.users.remove(user);
+      console.log(`[Discord] Removed reaction from ${user.tag}`);
+    } catch (error) {
+      console.error(`[Discord] Failed to remove reaction from ${user.tag}:`, error.message);
+    }
   });
 }
 

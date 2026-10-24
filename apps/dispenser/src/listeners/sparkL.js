@@ -105,6 +105,34 @@ const satsProcessedViaEvent = new Set();
 const streamDisconnectedAt = new Map(); // pin → timestamp of disconnect
 const DISCONNECT_WARN_MS = 15 * 60 * 1000; // 15 minutes
 
+// A pin only detects payments after its own first balance scan, so a pin that
+// loads late never mistakes funds that arrived while it was unwatched for a new payment.
+const baselinedPins = new Set();
+
+// Pins that failed to load at startup are retried with backoff until they load.
+const failedPins = new Map(); // pin → { attempts, nextRetryAt, lastError }
+let pinRetryInProgress = false;
+
+// Payments detected per pin since that pin's last sweep. Funds swept from a pin
+// with no detection mean someone paid and nothing dispensed.
+const detectedSinceSweep = new Map();
+const unmatchedSweeps = []; // most recent first, capped
+const MAX_UNMATCHED_SWEEPS = 50;
+
+let pollInProgress = false;
+let sweepInProgress = false;
+let lastPollCompletedAt = null;
+let lastPollError = null;
+
+const POLL_INTERVAL_MS = parseInt(process.env.SPARK_POLL_INTERVAL_MS || "5000");
+const PIN_RETRY_BASE_MS = parseInt(process.env.SPARK_PIN_RETRY_BASE_MS || "60000");
+const PIN_RETRY_MAX_MS = parseInt(process.env.SPARK_PIN_RETRY_MAX_MS || "600000");
+const SWEEP_INTERVAL_MS = parseInt(process.env.SPARK_SWEEP_INTERVAL_MS || "600000");
+
+const recordDetection = (pinNo) => {
+  detectedSinceSweep.set(pinNo, (detectedSinceSweep.get(pinNo) || 0) + 1);
+};
+
 // ============================================================================
 // Utility Functions
 // ============================================================================
@@ -143,7 +171,7 @@ const getWalletForProduct = async (pinNo) => {
 
 const setupEventEmitterForPin = (pinNo, wallet) => {
   wallet.on('transfer:claimed', async (transferId, updatedBalance) => {
-    if (!initialBalanceScanComplete) {
+    if (!baselinedPins.has(pinNo)) {
       return;
     }
 
@@ -171,6 +199,7 @@ const setupEventEmitterForPin = (pinNo, wallet) => {
 
         previousSatsBalances.set(pinNo, currentSatsNum);
         satsProcessedViaEvent.add(transferId);
+        recordDetection(pinNo);
 
         console.log(`[Spark] 🥤 Dispensing for pin ${pinNo}...`);
         logPayment(pinNo, "sats", satsIncrease, "spark");
@@ -199,70 +228,95 @@ const setupEventEmitterForPin = (pinNo, wallet) => {
 };
 
 const checkForTokenPayments = async () => {
+  // On a slow network a round can outlast the interval; never stack rounds on top of each other.
+  if (pollInProgress) {
+    return;
+  }
+  pollInProgress = true;
+
   try {
+    let roundError = null;
+
     for (const [pinNo, paymentRequest] of pinPaymentAddresses) {
-      const wallet = await getWalletForProduct(pinNo);
-      const currentBalance = await wallet.getBalance();
-      const currentSatsNum = Number(currentBalance.balance);
+      try {
+        const wallet = await getWalletForProduct(pinNo);
+        const currentBalance = await wallet.getBalance();
+        const currentSatsNum = Number(currentBalance.balance);
 
-      previousSatsBalances.set(pinNo, currentSatsNum);
+        previousSatsBalances.set(pinNo, currentSatsNum);
 
-      for (const [tokenKey, tokenConfig] of Object.entries(SUPPORTED_TOKENS)) {
-        try {
-          const requiredTokenAmount = tokenConfig.pinAmounts[pinNo];
+        for (const [tokenKey, tokenConfig] of Object.entries(SUPPORTED_TOKENS)) {
+          try {
+            const requiredTokenAmount = tokenConfig.pinAmounts[pinNo];
 
-          // Skip if this pin doesn't have a configured token amount
-          if (!requiredTokenAmount) {
-            continue;
-          }
-
-          // Get token amount (0 if token doesn't exist in wallet)
-          let tokenAmount = 0;
-          if (currentBalance.tokenBalances.has(tokenConfig.identifier)) {
-            const tokenData = currentBalance.tokenBalances.get(tokenConfig.identifier);
-            if (tokenData && tokenData.ownedBalance != null) {
-              const decimals = tokenData.tokenMetadata?.decimals ?? 6;
-              tokenAmount = Number(tokenData.ownedBalance) / Math.pow(10, decimals);
+            // Skip if this pin doesn't have a configured token amount
+            if (!requiredTokenAmount) {
+              continue;
             }
-          }
+
+            // Get token amount (0 if token doesn't exist in wallet)
+            let tokenAmount = 0;
+            if (currentBalance.tokenBalances.has(tokenConfig.identifier)) {
+              const tokenData = currentBalance.tokenBalances.get(tokenConfig.identifier);
+              if (tokenData && tokenData.ownedBalance != null) {
+                const decimals = tokenData.tokenMetadata?.decimals ?? 6;
+                tokenAmount = Number(tokenData.ownedBalance) / Math.pow(10, decimals);
+              }
+            }
 
 
-          // Get previous token balance for this pin and token
-          const tokenBalanceKey = `${pinNo}_${tokenConfig.identifier}`;
-          const previousTokenAmount = previousTokenBalances.get(tokenBalanceKey) || 0;
+            // Get previous token balance for this pin and token
+            const tokenBalanceKey = `${pinNo}_${tokenConfig.identifier}`;
+            const previousTokenAmount = previousTokenBalances.get(tokenBalanceKey) || 0;
 
-          const paymentAmount = tokenAmount - previousTokenAmount;
-          if (paymentAmount >= requiredTokenAmount && tokenAmount > previousTokenAmount && !isNaN(tokenAmount) && initialBalanceScanComplete) {
-            console.log(`[Spark] ✅ TOKEN PAYMENT DETECTED (Polling) for pin ${pinNo}!`);
-            console.log(`[Spark] - Token: ${tokenConfig.name}`);
-            console.log(`[Spark] - New balance: ${tokenAmount} (was ${previousTokenAmount})`);
-            console.log(`[Spark] - Increase: ${tokenAmount - previousTokenAmount} tokens`);
-            console.log(`[Spark] - Required: ${requiredTokenAmount}`);
-            console.log(`[Spark] - Address: ${paymentRequest.address}`);
+            const paymentAmount = tokenAmount - previousTokenAmount;
+            if (paymentAmount >= requiredTokenAmount && tokenAmount > previousTokenAmount && !isNaN(tokenAmount) && baselinedPins.has(pinNo)) {
+              console.log(`[Spark] ✅ TOKEN PAYMENT DETECTED (Polling) for pin ${pinNo}!`);
+              console.log(`[Spark] - Token: ${tokenConfig.name}`);
+              console.log(`[Spark] - New balance: ${tokenAmount} (was ${previousTokenAmount})`);
+              console.log(`[Spark] - Increase: ${tokenAmount - previousTokenAmount} tokens`);
+              console.log(`[Spark] - Required: ${requiredTokenAmount}`);
+              console.log(`[Spark] - Address: ${paymentRequest.address}`);
 
-            // Update stored token balance
+              // Update stored token balance
+              previousTokenBalances.set(tokenBalanceKey, tokenAmount);
+              recordDetection(pinNo);
+
+              // Dispense the product
+              console.log(`[Spark] 🥤 Dispensing for pin ${pinNo}...`);
+              const tokenIncrease = tokenAmount - previousTokenAmount;
+              logPayment(pinNo, "tokens", tokenIncrease, "spark");
+              dispenseFromPayments(pinNo, "tokens");
+
+              // Notify frontend via SSE
+              const drinkName = getPinName(pinNo);
+              notifyPaymentSuccess(pinNo, paymentRequest.address, drinkName, "tokens", tokenAmount - previousTokenAmount);
+              break;
+            }
+
+            // Always update the tracked token balance even if no payment
             previousTokenBalances.set(tokenBalanceKey, tokenAmount);
-
-
-            // Dispense the product
-            console.log(`[Spark] 🥤 Dispensing for pin ${pinNo}...`);
-            const tokenIncrease = tokenAmount - previousTokenAmount;
-            logPayment(pinNo, "tokens", tokenIncrease, "spark");
-            dispenseFromPayments(pinNo, "tokens");
-
-            // Notify frontend via SSE
-            const drinkName = getPinName(pinNo);
-            notifyPaymentSuccess(pinNo, paymentRequest.address, drinkName, "tokens", tokenAmount - previousTokenAmount);
-            break;
+          } catch (tokenError) {
+            // Token balance check failed, continue to next token
+            console.error(`[Spark] Error checking ${tokenConfig.name} balance for pin ${pinNo}:`, tokenError.message);
           }
-
-          // Always update the tracked token balance even if no payment
-          previousTokenBalances.set(tokenBalanceKey, tokenAmount);
-        } catch (tokenError) {
-          // Token balance check failed, continue to next token
-          console.error(`[Spark] Error checking ${tokenConfig.name} balance for pin ${pinNo}:`, tokenError.message);
         }
+
+        if (!baselinedPins.has(pinNo)) {
+          baselinedPins.add(pinNo);
+          console.log(`[Spark] Pin ${pinNo} baseline recorded, now detecting payments`);
+        }
+      } catch (pinError) {
+        // One unreachable pin must not stop the other pins from being checked.
+        roundError = pinError;
+        console.error(`[Spark] Error checking payments for pin ${pinNo}:`, pinError.message);
       }
+    }
+
+    if (roundError) {
+      lastPollError = { at: Date.now(), message: roundError.message };
+    } else {
+      lastPollCompletedAt = Date.now();
     }
 
     if (!initialBalanceScanComplete) {
@@ -281,7 +335,10 @@ const checkForTokenPayments = async () => {
     }
 
   } catch (error) {
+    lastPollError = { at: Date.now(), message: error.message };
     console.error(`[Spark] Error checking token payments:`, error.message);
+  } finally {
+    pollInProgress = false;
   }
 };
 
@@ -298,61 +355,177 @@ const sweepAllFundsToTreasury = async () => {
     return;
   }
 
-  // Sweep from each pin wallet
-  const allPins = getVendingPins();
-  let swept = false;
+  // A sweep on a slow network can outlast the interval; never run two at once.
+  if (sweepInProgress) {
+    return;
+  }
+  sweepInProgress = true;
 
-  for (const pinNo of allPins) {
-    try {
-      const pinWallet = await getWalletForProduct(pinNo);
-      const balance = await pinWallet.getBalance();
-      const availableSats = Number(balance.balance);
+  try {
+    // Only sweep pins that are being watched. Funds in an unwatched pin stay put
+    // (and are flagged once the pin loads) instead of silently vanishing.
+    let swept = false;
 
-      // Check and sweep sats
-      if (availableSats > 100) {
-        try {
-          await pinWallet.transfer({
-            receiverSparkAddress: treasuryAddress,
-            amountSats: availableSats
-          });
-          swept = true;
-          console.log(`[Spark] ✅ Swept ${availableSats} sats from pin ${pinNo}`);
-        } catch (err) {
-          console.error(`[Spark] ❌ Failed to sweep ${availableSats} sats from pin ${pinNo}:`, err.message);
-        }
+    for (const pinNo of pinPaymentAddresses.keys()) {
+      if (!baselinedPins.has(pinNo)) {
+        continue;
       }
 
-      // Check and sweep tokens
-      if (balance.tokenBalances && balance.tokenBalances.size > 0) {
-        for (const [tokenId, tokenData] of balance.tokenBalances) {
+      try {
+        const pinWallet = await getWalletForProduct(pinNo);
+        const balance = await pinWallet.getBalance();
+        const availableSats = Number(balance.balance);
+        const sweptItems = [];
+
+        // Check and sweep sats. Skip sats the payment detector hasn't seen yet so
+        // a payment arriving mid-sweep is dispensed first and swept next time.
+        const satsSeenByDetector = previousSatsBalances.get(pinNo) ?? 0;
+        if (availableSats > 100 && availableSats > satsSeenByDetector) {
+          console.log(`[Spark] Pin ${pinNo} has ${availableSats - satsSeenByDetector} unprocessed sats, deferring sweep`);
+        } else if (availableSats > 100) {
           try {
-            const rawAmount = tokenData.ownedBalance;
-            if (rawAmount > 0n) {
-              const decimals = tokenData.tokenMetadata?.decimals ?? 0;
-              const tokenAmount = Number(rawAmount) / Math.pow(10, decimals);
-
-              await pinWallet.transferTokens({
-                tokenIdentifier: tokenId,
-                tokenAmount: rawAmount,
-                receiverSparkAddress: treasuryAddress
-              });
-
-              swept = true;
-              console.log(`[Spark] ✅ Swept ${tokenAmount} tokens from pin ${pinNo}`);
-            }
-          } catch (tokenErr) {
-            console.error(`[Spark] ❌ Failed to sweep tokens from pin ${pinNo}:`, tokenErr.message);
+            await pinWallet.transfer({
+              receiverSparkAddress: treasuryAddress,
+              amountSats: availableSats
+            });
+            swept = true;
+            sweptItems.push(`${availableSats} sats`);
+            console.log(`[Spark] ✅ Swept ${availableSats} sats from pin ${pinNo}`);
+          } catch (err) {
+            console.error(`[Spark] ❌ Failed to sweep ${availableSats} sats from pin ${pinNo}:`, err.message);
           }
         }
-      }
-    } catch (error) {
-      console.error(`[Spark] Error checking pin ${pinNo}:`, error.message);
-    }
-  }
 
-  if (swept) {
-    console.log(`[Spark] Fund sweep complete`);
+        // Check and sweep tokens
+        if (balance.tokenBalances && balance.tokenBalances.size > 0) {
+          for (const [tokenId, tokenData] of balance.tokenBalances) {
+            try {
+              const rawAmount = tokenData.ownedBalance;
+              if (rawAmount > 0n) {
+                const decimals = tokenData.tokenMetadata?.decimals ?? 0;
+                const tokenAmount = Number(rawAmount) / Math.pow(10, decimals);
+
+                const tokensSeenByDetector = previousTokenBalances.get(`${pinNo}_${tokenId}`);
+                if (tokensSeenByDetector !== undefined && tokenAmount > tokensSeenByDetector) {
+                  console.log(`[Spark] Pin ${pinNo} has ${tokenAmount - tokensSeenByDetector} unprocessed tokens, deferring sweep`);
+                  continue;
+                }
+
+                await pinWallet.transferTokens({
+                  tokenIdentifier: tokenId,
+                  tokenAmount: rawAmount,
+                  receiverSparkAddress: treasuryAddress
+                });
+
+                swept = true;
+                sweptItems.push(`${tokenAmount} tokens`);
+                console.log(`[Spark] ✅ Swept ${tokenAmount} tokens from pin ${pinNo}`);
+              }
+            } catch (tokenErr) {
+              console.error(`[Spark] ❌ Failed to sweep tokens from pin ${pinNo}:`, tokenErr.message);
+            }
+          }
+        }
+
+        if (sweptItems.length > 0) {
+          if (!detectedSinceSweep.get(pinNo)) {
+            const event = { at: Date.now(), pin: pinNo, drink: getPinName(pinNo), swept: sweptItems.join(", ") };
+            unmatchedSweeps.unshift(event);
+            unmatchedSweeps.length = Math.min(unmatchedSweeps.length, MAX_UNMATCHED_SWEEPS);
+            console.error(`[Spark] ⚠️ UNMATCHED SWEEP: swept ${event.swept} from pin ${pinNo} (${event.drink}) with no detected payment since the last sweep`);
+          }
+          detectedSinceSweep.set(pinNo, 0);
+        }
+      } catch (error) {
+        console.error(`[Spark] Error checking pin ${pinNo}:`, error.message);
+      }
+    }
+
+    if (swept) {
+      console.log(`[Spark] Fund sweep complete`);
+    }
+  } finally {
+    sweepInProgress = false;
   }
+};
+
+// ============================================================================
+// Pin Loading
+// ============================================================================
+
+// Initialize a pin's wallet and start watching it for payments. Throws on failure.
+const loadPin = async (pinNo) => {
+  const { address } = getPinConfig(pinNo);
+
+  // Initialize the wallet (this verifies the mnemonic works)
+  await getWalletForProduct(pinNo);
+
+  // Get pin-specific sats amount (required)
+  const pinSpecificAmount = process.env[`SPARK_PIN_${pinNo}_AMOUNT`];
+  if (!pinSpecificAmount) {
+    throw new Error(`Missing required environment variable: SPARK_PIN_${pinNo}_AMOUNT`);
+  }
+  const amount = parseInt(pinSpecificAmount);
+
+  const paymentRequest = {
+    pinNo,
+    address: address, // Use pre-generated address
+    amount: amount
+  };
+
+  pinPaymentAddresses.set(pinNo, paymentRequest);
+  console.log(`[Spark] Pin ${pinNo}: Send ${paymentRequest.amount} sats to ${address}`);
+};
+
+const markPinFailed = (pinNo, error) => {
+  const previous = failedPins.get(pinNo);
+  const attempts = (previous?.attempts || 0) + 1;
+  const delay = Math.min(PIN_RETRY_BASE_MS * Math.pow(2, attempts - 1), PIN_RETRY_MAX_MS);
+  failedPins.set(pinNo, { attempts, nextRetryAt: Date.now() + delay, lastError: error.message });
+  console.error(`[Spark] Failed to load pin ${pinNo} (attempt ${attempts}), retrying in ${Math.round(delay / 1000)}s:`, error.message);
+};
+
+// Retry pins that failed to load. One retry pass at a time: wallet init can take minutes on a bad network.
+const retryFailedPins = async () => {
+  if (pinRetryInProgress || failedPins.size === 0) {
+    return;
+  }
+  pinRetryInProgress = true;
+
+  try {
+    for (const [pinNo, state] of failedPins) {
+      if (Date.now() < state.nextRetryAt) {
+        continue;
+      }
+      try {
+        await loadPin(pinNo);
+        failedPins.delete(pinNo);
+        console.log(`[Spark] ✅ Pin ${pinNo} loaded after ${state.attempts} failed attempt(s)`);
+      } catch (error) {
+        markPinFailed(pinNo, error);
+      }
+    }
+  } finally {
+    pinRetryInProgress = false;
+  }
+};
+
+// Snapshot of listener state for the /health endpoint.
+const getSparkHealth = () => {
+  const expectedPins = getVendingPins();
+  return {
+    pinsExpected: expectedPins.length,
+    pinsLoaded: pinPaymentAddresses.size,
+    pinsDetecting: baselinedPins.size,
+    failedPins: Object.fromEntries(
+      [...failedPins].map(([pinNo, s]) => [pinNo, { attempts: s.attempts, lastError: s.lastError, nextRetryAt: s.nextRetryAt }])
+    ),
+    lastPollCompletedAt,
+    lastPollError,
+    pollInProgress,
+    streamsDisconnectedSince: Object.fromEntries(streamDisconnectedAt),
+    unmatchedSweeps,
+  };
 };
 
 // ============================================================================
@@ -370,31 +543,16 @@ const startSparkListener = async () => {
     console.log("[Spark] Loading pre-generated wallets for each pin...");
     for (const pinNo of availablePins) {
       try {
-        const { address } = getPinConfig(pinNo);
-
-        // Initialize the wallet (this verifies the mnemonic works)
-        await getWalletForProduct(pinNo);
-
-        // Get pin-specific sats amount (required)
-        const pinSpecificAmount = process.env[`SPARK_PIN_${pinNo}_AMOUNT`];
-        if (!pinSpecificAmount) {
-          throw new Error(`Missing required environment variable: SPARK_PIN_${pinNo}_AMOUNT`);
-        }
-        const amount = parseInt(pinSpecificAmount);
-
-        const paymentRequest = {
-          pinNo,
-          address: address, // Use pre-generated address
-          amount: amount
-        };
-
-        pinPaymentAddresses.set(pinNo, paymentRequest);
-        console.log(`[Spark] Pin ${pinNo}: Send ${paymentRequest.amount} sats to ${address}`);
-
+        await loadPin(pinNo);
       } catch (error) {
-        console.error(`[Spark] Failed to load pin ${pinNo}:`, error.message);
+        markPinFailed(pinNo, error);
       }
     }
+
+    if (failedPins.size > 0) {
+      console.error(`[Spark] ⚠️ ${failedPins.size} of ${availablePins.length} pins failed to load and will be retried: ${[...failedPins.keys()].join(", ")}`);
+    }
+    setInterval(retryFailedPins, Math.min(10000, PIN_RETRY_BASE_MS));
 
     console.log(`[Spark] 🎯 Vending machine ready! Each pin has unique address:`);
     for (const [pinNo, paymentRequest] of pinPaymentAddresses) {
@@ -415,7 +573,7 @@ const startSparkListener = async () => {
 
     setInterval(async () => {
       await checkForTokenPayments();
-    }, 5000);
+    }, POLL_INTERVAL_MS);
 
     // Check if treasury is configured
     const treasuryAddress = getTreasuryAddress();
@@ -425,7 +583,7 @@ const startSparkListener = async () => {
       // Start periodic fund sweep every 10 minutes
       setInterval(() => {
         sweepAllFundsToTreasury();
-      }, 10 * 60 * 1000); // 10 minutes
+      }, SWEEP_INTERVAL_MS);
     }
 
     console.log("[Spark] Spark payment listener started successfully");
@@ -442,4 +600,5 @@ const startSparkListener = async () => {
 
 module.exports = {
   startSparkListener,
+  getSparkHealth,
 };
