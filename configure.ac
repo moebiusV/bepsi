@@ -20,5 +20,5 @@ AM_CONDITIONAL([NEED_EXPLICIT_BZERO], [test "x$ac_cv_func_explicit_bzero" != xye
 AM_CONDITIONAL([NEED_STRLCPY],        [test "x$ac_cv_func_strlcpy" != xyes])
 AM_CONDITIONAL([NEED_FREEZERO],       [test "x$ac_cv_func_freezero" != xyes])
 
-AC_CONFIG_FILES([Makefile compat/Makefile tests/Makefile])
+AC_CONFIG_FILES([Makefile compat/Makefile lib/Makefile tests/Makefile])
 AC_OUTPUT

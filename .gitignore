@@ -21,6 +21,7 @@ m4/*
 *.la
 stamp-h1
 tests/test_imsg
+tests/test_proto
 *.log
 *.trs
 bepsi-*.tar.*

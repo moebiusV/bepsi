@@ -24,8 +24,14 @@ make distcheck
 ```
 
 Requires a C compiler, make and the GNU autotools. Currently the tree holds
-the autotools skeleton, the vendored imsg library (`compat/`) and a test that
-exchanges a message through it; the daemons are not written yet.
+the autotools skeleton, the vendored imsg library (`compat/`), the wire
+protocol (`lib/`) and tests for both; the daemons are not written yet.
+
+The protocol between the daemons is defined in `lib/bepsi_proto.h`: watchers
+send `PAID` to the hardware daemon, which replies to subscribers with
+`DISPENSE_RESULT`; the web UI asks it for the slot list and changes stock or
+swaps slots. Messages are fixed-size structs with validators for use on
+receipt, since peers are not trusted to be well formed.
 
 `compat/` holds OpenBSD's imsg(3) (ISC license, unmodified, each file keeps its
 notice) plus small shims for `strlcpy`, `explicit_bzero` and `freezero`, which
