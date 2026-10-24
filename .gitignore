@@ -22,6 +22,7 @@ m4/*
 stamp-h1
 tests/test_imsg
 tests/test_proto
+tests/test_bepsid
 *.log
 *.trs
 bepsi-*.tar.*

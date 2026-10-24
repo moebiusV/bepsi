@@ -25,7 +25,8 @@ make distcheck
 
 Requires a C compiler, make and the GNU autotools. Currently the tree holds
 the autotools skeleton, the vendored imsg library (`compat/`), the wire
-protocol (`lib/`) and tests for both; the daemons are not written yet.
+protocol (`lib/`), the hardware daemon `bepsid` (`src/`) and tests. The payment
+watchers and the web daemon are not written yet.
 
 The protocol between the daemons is defined in `lib/bepsi_proto.h`: watchers
 send `PAID` to the hardware daemon, which replies to subscribers with
@@ -37,6 +38,30 @@ receipt, since peers are not trusted to be well formed.
 notice) plus small shims for `strlcpy`, `explicit_bzero` and `freezero`, which
 are built only when the C library lacks them (the Pi's Debian 12 has no
 `strlcpy`).
+
+## bepsid, the hardware daemon
+
+`bepsid` owns the solenoid GPIO lines and the SQLite stock database
+(`src/`). Watchers and the web UI connect to its Unix socket. See
+`etc/bepsid.conf.example` for the configuration, including the original pin
+mapping; `bepsid --help` for options. It runs in the foreground for systemd.
+
+- **GPIO** uses the Linux GPIO character device directly (no libgpiod).
+  Lines are requested at start-up and held de-energised, so a solenoid never
+  fires except on a dispense. The old JavaScript service must be stopped
+  first, because a line it holds cannot be requested twice. `gpio fake` in the
+  config logs pulses to a file instead, for testing without hardware.
+- **No double dispense.** A payment is recorded, and its stock taken, in one
+  transaction before the solenoid fires. The same `(rail, payment id)` again
+  gets `DUPLICATE`, including after a restart. If the machine dies mid-dispense
+  the payment is marked `unknown` at the next start and is not retried, since
+  nobody can tell whether the drink dropped; check those by hand.
+- **Failed dispense.** If the GPIO write fails, the stock is returned and the
+  payment is recorded `failed`; the watcher gets `HARDWARE` and the customer
+  needs a refund or manual vend.
+- **Access control** is the socket's file mode (0660) and group. Any client
+  that can connect can fire a solenoid or edit stock, so keep it to the
+  watcher and web users.
 
 ## Layout
 

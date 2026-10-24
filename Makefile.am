@@ -2,6 +2,8 @@
 
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = compat lib tests
+SUBDIRS = compat lib src tests
 
 EXTRA_DIST = README.md COPYING
+
+dist_doc_DATA = etc/bepsid.conf.example

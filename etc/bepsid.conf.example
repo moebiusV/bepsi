@@ -1,0 +1,24 @@
+# bepsid.conf -- copy to $(sysconfdir)/bepsi/bepsid.conf and edit.
+#
+# Pin numbers below come from the original JavaScript service (sysfs numbers
+# 516, 517, 518, 524, 525, 528).  With the kernel's sysfs base of 512 these are
+# BCM GPIO 4, 5, 6, 12, 13 and 16, i.e. line offsets 4, 5, 6, 12, 13, 16.
+# Check the chip name and offsets on the machine with `gpioinfo` before first
+# use; on a Pi 5 the header GPIOs are on /dev/gpiochip4, not gpiochip0.
+#
+# The solenoids were driven active-low (pin low = energised), so "active-low".
+#
+# Capacities are guesses: set them to what each column really holds.
+
+socket   /run/bepsi/bepsid.sock
+db       /var/lib/bepsi/bepsi.db
+gpio     gpiochip
+pulse_ms 500
+
+# slot ID SELECTION KIND CHIP LINE POLARITY CAPACITY PRODUCT...
+slot 0 1 column /dev/gpiochip0  4 active-low 10 Coke
+slot 1 2 column /dev/gpiochip0  5 active-low 10 Pepsi
+slot 2 3 column /dev/gpiochip0  6 active-low 10 Poppi
+slot 3 4 column /dev/gpiochip0 12 active-low 10 Bubbly
+slot 4 5 column /dev/gpiochip0 13 active-low 10 Cooler
+slot 5 6 column /dev/gpiochip0 16 active-low 10 Beer

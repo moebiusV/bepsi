@@ -20,5 +20,9 @@ AM_CONDITIONAL([NEED_EXPLICIT_BZERO], [test "x$ac_cv_func_explicit_bzero" != xye
 AM_CONDITIONAL([NEED_STRLCPY],        [test "x$ac_cv_func_strlcpy" != xyes])
 AM_CONDITIONAL([NEED_FREEZERO],       [test "x$ac_cv_func_freezero" != xyes])
 
-AC_CONFIG_FILES([Makefile compat/Makefile lib/Makefile tests/Makefile])
+AC_SEARCH_LIBS([sqlite3_open], [sqlite3], [],
+  [AC_MSG_ERROR([SQLite 3 is required (libsqlite3-dev)])])
+AC_CHECK_HEADERS([sqlite3.h], [], [AC_MSG_ERROR([sqlite3.h is required])])
+
+AC_CONFIG_FILES([Makefile compat/Makefile lib/Makefile src/Makefile tests/Makefile])
 AC_OUTPUT
