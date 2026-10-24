@@ -73,3 +73,14 @@ EXTRA_DIST += $(top_srcdir)/third_party/civetweb/handle_form.inl \
 	$(top_srcdir)/third_party/civetweb/CREDITS.md \
 	$(top_srcdir)/third_party/civetweb/README.bepsi
 endif
+
+if BUILD_NOTIFY
+sbin_PROGRAMS += bepsi-notify
+
+bepsi_notify_SOURCES = bepsi-notify.c
+bepsi_notify_CPPFLAGS = -I$(top_srcdir)/compat -I$(top_srcdir)/lib \
+		  -DSYSCONFDIR='"$(sysconfdir)"'
+bepsi_notify_CFLAGS = -Wall -Wextra
+bepsi_notify_LDADD = $(top_builddir)/lib/libbepsi.la \
+	       $(top_builddir)/compat/libcompat.la $(CURL_LIBS)
+endif

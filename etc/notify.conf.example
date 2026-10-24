@@ -1,0 +1,24 @@
+# notify.conf -- bepsi-notify.  Copy to $(sysconfdir)/bepsi/notify.conf.
+#
+# The webhook URL is a secret: anyone who has it can post to your channel.
+# Keep this file readable only by the service:
+#   chown root:bepsi-notify notify.conf; chmod 0640 notify.conf
+# The URL is never written to the log.
+#
+# Make one in Discord: channel settings > Integrations > Webhooks > New Webhook
+# > Copy Webhook URL.  It must be https:// and have no "?" part.
+webhook https://discord.com/api/webhooks/0000000000000000000/REPLACE-WITH-YOUR-TOKEN
+
+# What follows the switch's name in the message.  A switch that is named
+# "Hopper 3" and tied to a slot holding Tea says:
+#   Hopper 3 (Tea) is low (fewer than 6 left)
+# The names and slot ties are set on the admin page.
+low_text is low (fewer than 6 left)
+
+# Which switches raise an alert, by number.  Leave this out for all of them.
+#inputs 2 3 4 5 6
+
+# bepsid's socket, and where the ids of posted messages are kept (so a restart
+# neither posts twice nor forgets which message to remove).
+socket /run/bepsi/bepsid.sock
+state  /var/lib/bepsi-notify/state

@@ -5,7 +5,7 @@ noinst_LTLIBRARIES = libbepsi.la
 
 libbepsi_la_SOURCES = bepsi_proto.c bepsi_proto.h bepsi_client.c bepsi_client.h \
 		      bepsi_web.c bepsi_web.h bepsi_pay.c bepsi_pay.h \
-		      bepsi_qr.c bepsi_qr.h
+		      bepsi_qr.c bepsi_qr.h bepsi_notify.c bepsi_notify.h
 libbepsi_la_CPPFLAGS = -I$(top_srcdir)/compat -I$(top_srcdir)/third_party/qrcodegen
 libbepsi_la_CFLAGS = -Wall -Wextra
 

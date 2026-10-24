@@ -1,0 +1,35 @@
+[Unit]
+Description=Bepsi low-hopper alert (Discord)
+Documentation=https://github.com/moebiusV/bepsi
+After=network-online.target bepsid.service
+Wants=network-online.target bepsid.service
+
+[Service]
+Type=simple
+User=bepsi-notify
+Group=bepsi-notify
+# Group bepsi lets it reach the bepsid socket; it has no GPIO or database access.
+SupplementaryGroups=bepsi
+ExecStart=@sbindir@/bepsi-notify -c @sysconfdir@/bepsi/notify.conf
+Restart=always
+RestartSec=5
+# /var/lib/bepsi-notify holds the ids of the messages it has posted.
+StateDirectory=bepsi-notify
+StateDirectoryMode=0750
+
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictNamespaces=yes
+LockPersonality=yes
+SystemCallArchitectures=native
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

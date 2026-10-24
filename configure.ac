@@ -70,6 +70,20 @@ AS_IF([test "x$enable_watchers" = xyes], [
     [AC_MSG_ERROR([libwebsockets not found; or use --disable-watchers])])
 ])
 AC_SUBST([LWS_LIBS])
+
+dnl bepsi-notify posts to a Discord webhook over HTTPS, using libcurl.
+AC_ARG_ENABLE([notify],
+  [AS_HELP_STRING([--disable-notify],
+    [do not build bepsi-notify, the Discord low-hopper alert (needs libcurl)])],
+  [], [enable_notify=yes])
+AS_IF([test "x$enable_notify" = xyes], [
+  AC_CHECK_HEADERS([curl/curl.h], [],
+    [AC_MSG_ERROR([curl/curl.h not found (libcurl4-openssl-dev); or use --disable-notify])])
+  AC_CHECK_LIB([curl], [curl_easy_init], [CURL_LIBS=-lcurl],
+    [AC_MSG_ERROR([libcurl not found; or use --disable-notify])])
+])
+AC_SUBST([CURL_LIBS])
+AM_CONDITIONAL([BUILD_NOTIFY], [test "x$enable_notify" = xyes])
 AM_CONDITIONAL([BUILD_WATCHERS], [test "x$enable_watchers" = xyes])
 
 AC_CONFIG_FILES([scripts/bepsi-mkcert], [chmod +x scripts/bepsi-mkcert])

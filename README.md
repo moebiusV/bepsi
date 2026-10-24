@@ -190,6 +190,32 @@ This is how to find out which switch is which on the machine: run `watch`,
 press one, and see which input number lights up. The admin page does the same
 live.
 
+## bepsi-notify, the low-hopper alert
+
+Replaces the old Discord "HOPPER n IS LOW" message. It follows the switch events
+from `bepsid` and, when a watched switch reports low, posts one message to a
+Discord **webhook** (a plain HTTPS POST, via libcurl: no bot login, nothing held
+open). The message uses the switch's name and the product of the slot it is tied
+to, both set on the admin page: `Hopper 3 (Tea) is low (fewer than 6 left)`.
+When the switch clears, the message is deleted.
+
+- It remembers the message for each switch in a state file, so a restart neither
+  posts again nor forgets which message to delete. A hopper already low when it
+  starts is reported.
+- It fixes a bug in the old code: that deleted the message on a refill but never
+  forgot it, so each hopper could alert only once until the service restarted.
+- A rate limit or an outage is retried; a failed post is tried again a minute
+  later.
+- Mentions are switched off in the message, so a label cannot ping everyone.
+- The webhook URL is a secret: it must be `https://` (or loopback `http://` for
+  tests), is never logged, and the config should be readable only by the
+  service. See `etc/notify.conf.example`.
+
+The other half of the old Discord feature, an emoji reaction that dispenses a
+drink, is not replaced: it needs the Discord gateway, which is a long-lived
+websocket plus the bot API. Configure with `--disable-notify` to build without
+libcurl.
+
 ## bepsi-watch-ws, the websocket payment watchers
 
 One program, `bepsi-watch-ws`, covers the two rails that notify over a
