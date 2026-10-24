@@ -1,0 +1,77 @@
+/* Bepsi tablet UI.  Plain CSS, no framework; first pass, to be redesigned. */
+:root {
+	--bg: #f4f1ec;
+	--card: #ffffff;
+	--ink: #1d2733;
+	--muted: #6b7785;
+	--accent: #1f6feb;
+	--sold: #b9b4ab;
+	--radius: 18px;
+}
+@media (prefers-color-scheme: dark) {
+	:root {
+		--bg: #12171d;
+		--card: #1c242d;
+		--ink: #eef2f6;
+		--muted: #93a0ae;
+		--accent: #6aa5ff;
+		--sold: #4a525c;
+	}
+}
+* { box-sizing: border-box; }
+html { font-size: 20px; }
+body {
+	margin: 0;
+	background: var(--bg);
+	color: var(--ink);
+	font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+	line-height: 1.4;
+}
+main { max-width: 34rem; margin: 0 auto; padding: 1.2rem 1rem 3rem; }
+h1 { margin: 0 0 1rem; text-align: center; letter-spacing: .25em; font-weight: 600; }
+h2 { margin-top: 2rem; font-weight: 600; }
+.board { list-style: none; margin: 0; padding: 0; display: grid; gap: .8rem; }
+.slot {
+	display: grid;
+	grid-template-columns: 3.2rem 1fr auto;
+	align-items: center;
+	gap: .8rem;
+	background: var(--card);
+	border-radius: var(--radius);
+	padding: 1rem 1.2rem;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, .06), 0 6px 18px rgba(0, 0, 0, .05);
+}
+.sel {
+	display: grid;
+	place-items: center;
+	height: 2.6rem;
+	border-radius: 50%;
+	background: var(--accent);
+	color: #fff;
+	font-weight: 600;
+}
+.name { font-size: 1.15rem; font-weight: 600; }
+.stock { color: var(--muted); font-size: .85rem; }
+.soldout { opacity: .6; }
+.soldout .sel { background: var(--sold); }
+.soldout .name { text-decoration: line-through; }
+#msg { min-height: 2rem; text-align: center; font-size: 1.1rem; margin-top: 1.5rem; }
+.notice {
+	background: var(--card);
+	border-radius: var(--radius);
+	padding: .8rem 1rem;
+	text-align: center;
+}
+table.admin { width: 100%; border-collapse: collapse; }
+table.admin th, table.admin td { text-align: left; padding: .5rem .3rem; border-bottom: 1px solid var(--sold); }
+input, select, button {
+	font: inherit;
+	padding: .45rem .7rem;
+	border-radius: 10px;
+	border: 1px solid var(--sold);
+	background: var(--card);
+	color: var(--ink);
+}
+input[type=number] { width: 5rem; }
+button { background: var(--accent); border-color: var(--accent); color: #fff; cursor: pointer; }
+a { color: var(--accent); }

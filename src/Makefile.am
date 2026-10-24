@@ -43,6 +43,24 @@ bepsi_httpd_CPPFLAGS = -I$(top_srcdir)/third_party/civetweb \
 	-DNO_SSL_DL -DOPENSSL_API_3_0 -DUSE_IPV6 \
 	-DBEPSI_PACKAGE='"$(PACKAGE_NAME)"' -DBEPSI_VERSION='"$(PACKAGE_VERSION)"'
 bepsi_httpd_LDADD = $(HTTPD_LIBS)
+
+## The pages: one CGI program, installed as index.cgi, status.cgi and
+## admin.cgi next to the static files (the name chooses the page).
+pkglibexec_PROGRAMS = bepsi-cgi
+bepsi_cgi_SOURCES = bepsi-cgi.c
+bepsi_cgi_CPPFLAGS = -I$(top_srcdir)/compat -I$(top_srcdir)/lib
+bepsi_cgi_CFLAGS = -Wall -Wextra
+bepsi_cgi_LDADD = $(top_builddir)/lib/libbepsi.la \
+	       $(top_builddir)/compat/libcompat.la
+
+install-exec-hook:
+	$(MKDIR_P) "$(DESTDIR)$(pkgdatadir)/www"
+	for p in index status admin; do \
+	  $(LN_S) -f "$(pkglibexecdir)/bepsi-cgi" "$(DESTDIR)$(pkgdatadir)/www/$$p.cgi"; \
+	done
+
+uninstall-hook:
+	for p in index status admin; do rm -f "$(DESTDIR)$(pkgdatadir)/www/$$p.cgi"; done
 EXTRA_DIST += $(top_srcdir)/third_party/civetweb/handle_form.inl \
 	$(top_srcdir)/third_party/civetweb/match.inl \
 	$(top_srcdir)/third_party/civetweb/md5.inl \

@@ -72,5 +72,7 @@ AS_IF([test "x$enable_watchers" = xyes], [
 AC_SUBST([LWS_LIBS])
 AM_CONDITIONAL([BUILD_WATCHERS], [test "x$enable_watchers" = xyes])
 
-AC_CONFIG_FILES([Makefile compat/Makefile lib/Makefile src/Makefile data/Makefile tests/Makefile])
+AC_CONFIG_FILES([scripts/bepsi-mkcert], [chmod +x scripts/bepsi-mkcert])
+AC_CONFIG_FILES([scripts/bepsi-passwd], [chmod +x scripts/bepsi-passwd])
+AC_CONFIG_FILES([Makefile compat/Makefile lib/Makefile src/Makefile data/Makefile www/Makefile scripts/Makefile tests/Makefile])
 AC_OUTPUT

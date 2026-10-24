@@ -38,6 +38,12 @@
 int bepsi_client_pay(const char *sockpath, const struct bepsi_paid *p,
     enum bepsi_status *status, int timeout_ms);
 
+/* Subscribe to dispense results and wait up to `timeout_ms` for the next one.
+ * Returns 1 and fills *out when one arrives, 0 on timeout, -1 if the daemon
+ * cannot be reached.  Results that happen between two calls are not seen. */
+int bepsi_client_wait_result(const char *sockpath, struct bepsi_result *out,
+    int timeout_ms);
+
 /* Fetch the slot list into out[0..max-1]; returns how many slots, or -1. */
 int bepsi_client_slots(const char *sockpath, struct bepsi_slot *out,
     size_t max, int timeout_ms);

@@ -23,3 +23,11 @@ Local modifications (list each here, with the reason, as it is made):
     printed usage to stderr and has no --version, and "make installcheck"
     requires both of every installed program.  -h and -H are unchanged.  The
     package name and version come from -DBEPSI_PACKAGE and -DBEPSI_VERSION.
+
+ 2. civetweb.c, check_authorization(): the protect_uri test used
+    memcmp(local_uri, uri, uri_len) without checking that the request's URI is
+    that long, so a request for "/" against a protected "/admin.cgi" read 8
+    bytes past the end of the buffer (found by AddressSanitizer in tests/web.sh,
+    on the first unauthenticated request).  It is now strncmp, which stops at
+    the end of the request URI.  Same behaviour otherwise.  Worth reporting
+    upstream.

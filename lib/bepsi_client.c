@@ -176,6 +176,63 @@ out:
 }
 
 int
+bepsi_client_wait_result(const char *sockpath, struct bepsi_result *out,
+    int timeout_ms)
+{
+	struct imsgbuf ib;
+	struct imsg m;
+	struct bepsi_hello hello = { BEPSI_PROTO_VERSION };
+	struct pollfd pfd;
+	int fd, rc = -1, left = timeout_ms;
+
+	if ((fd = connect_to(sockpath)) == -1)
+		return -1;
+	if (imsgbuf_init(&ib, fd) == -1) {
+		close(fd);
+		return -1;
+	}
+	if (imsg_compose(&ib, BEPSI_IMSG_HELLO, 0, 0, -1, &hello,
+	    sizeof(hello)) == -1 ||
+	    imsg_compose(&ib, BEPSI_IMSG_SUBSCRIBE, 0, 0, -1, NULL, 0) == -1 ||
+	    imsgbuf_flush(&ib) == -1)
+		goto out;
+	rc = 0;
+	pfd.fd = fd;
+	pfd.events = POLLIN;
+	while (left > 0) {
+		int r = imsgbuf_get(&ib, &m);
+
+		if (r == -1) {
+			rc = -1;
+			goto out;
+		}
+		if (r == 1) {
+			int ok = imsg_get_type(&m) == BEPSI_IMSG_DISPENSE_RESULT &&
+			    imsg_get_data(&m, out, sizeof(*out)) == 0 &&
+			    bepsi_result_valid(out);
+
+			imsg_free(&m);
+			if (ok) {
+				rc = 1;
+				goto out;
+			}
+			continue;
+		}
+		if (poll(&pfd, 1, left > 200 ? 200 : left) > 0) {
+			if (imsgbuf_read(&ib) != 1) {
+				rc = -1;
+				goto out;
+			}
+		} else
+			left -= 200;
+	}
+out:
+	imsgbuf_clear(&ib);
+	close(fd);
+	return rc;
+}
+
+int
 bepsi_client_slots(const char *sockpath, struct bepsi_slot *out, size_t max,
     int timeout_ms)
 {

@@ -78,12 +78,46 @@ segfaults on the first TLS request (seen on Debian 13 with OpenSSL 3.5), and
 the stand-alone server forwards a CGI program's output only when the program
 exits, so a CGI cannot stream; pages that wait for a payment must long-poll
 instead. Local changes to the vendored source are listed in
-`third_party/civetweb/README.bepsi` (one so far: GNU-style `--help` and
-`--version`).
+`third_party/civetweb/README.bepsi`: GNU-style `--help` and `--version`, and a
+fix for an out-of-bounds read in its password check that AddressSanitizer
+found.
 
 TLS only: a self-signed certificate is fine on a LAN, but the tablet's browser
 must be told to trust it. TLS 1.0 and 1.1 are refused and plain HTTP is not
 served on the TLS port. Configure with `--disable-httpd` to build without it.
+
+### The pages
+
+One CGI program, `bepsi-cgi`, is installed as `index.cgi`, `status.cgi` and
+`admin.cgi` next to the static files; its name chooses the page. It holds no
+state: every request asks `bepsid` over the socket.
+
+- **`/` (index.cgi)**: the drink board, from the live slot list. Sold-out
+  drinks are struck through; three or fewer left shows "only N left".
+- **`/status.cgi`**: a long-poll the board's small script (`bepsi.js`) keeps
+  open. It answers `ok SLOT` when a drink is dispensed, and the board shows
+  "Enjoy your Coke!". Results that happen in the gap between two polls are not
+  shown (the machine still dispenses).
+- **`/admin.cgi`**: stock counts and slot swaps, behind a password
+  (`protect_uri`). Changing anything needs a request from our own page (the
+  browser's `Origin` must match the host), which stops another website using the
+  admin's saved password. Product names and everything else are HTML-escaped,
+  and a `?msg=` in the URL only selects a fixed message, never echoes input.
+
+### Setting up the web server
+
+```
+sudo bepsi-mkcert bepsi.local 192.168.1.50   # names/addresses the tablet will use
+sudo bepsi-passwd admin                      # asks for the admin password
+sudo cp /usr/share/doc/bepsi/httpd.conf.example /etc/bepsi/httpd.conf
+sudo systemctl enable --now bepsi-httpd
+```
+
+`bepsi-mkcert` writes `/etc/bepsi/tls/server.pem` (never over an existing one
+without `-f`) and `cert.pem`, which you install on the tablet so its browser
+trusts the server. `bepsi-passwd` keeps the password out of command lines and
+`ps`. The unit runs as user `bepsi-web`, which may bind port 443 and reach the
+`bepsid` socket, nothing else.
 
 ## bepsictl, control from the shell
 

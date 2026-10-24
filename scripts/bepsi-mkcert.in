@@ -1,0 +1,93 @@
+#!/bin/sh
+# Copyright (c) 2026 moebiusV
+#
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+
+# Make a self-signed certificate for bepsi-httpd.
+#   bepsi-mkcert [-d DIR] [-f] NAME-OR-ADDRESS...
+# Writes DIR/server.pem (key and certificate, for bepsi-httpd) and DIR/cert.pem
+# (the certificate alone, to install on the tablet so its browser trusts it).
+# Never replaces an existing certificate unless -f is given, and a new one is
+# built beside the old and moved into place only when complete.
+
+for arg in "$@"; do
+	case $arg in
+	--version) echo "bepsi-mkcert (@PACKAGE_NAME@) @PACKAGE_VERSION@"; exit 0 ;;
+	--help) cat <<'USAGE'
+usage: bepsi-mkcert [-d DIR] [-f] NAME-OR-ADDRESS...
+Make a self-signed certificate for bepsi-httpd: DIR/server.pem for the server
+and DIR/cert.pem to install on the tablet. Default DIR is /etc/bepsi/tls.
+  -d DIR   where to write them
+  -f       replace an existing certificate
+      --help     display this help and exit
+      --version  output version information and exit
+USAGE
+		exit 0 ;;
+	esac
+done
+
+dir=/etc/bepsi/tls
+force=0
+while getopts d:f opt; do
+	case $opt in
+	d) dir=$OPTARG ;;
+	f) force=1 ;;
+	*) echo "usage: bepsi-mkcert [-d DIR] [-f] NAME-OR-ADDRESS..." >&2; exit 2 ;;
+	esac
+done
+shift $((OPTIND - 1))
+[ $# -ge 1 ] || { echo "usage: bepsi-mkcert [-d DIR] [-f] NAME-OR-ADDRESS..." >&2; exit 2; }
+command -v openssl >/dev/null 2>&1 || { echo "bepsi-mkcert: openssl not found" >&2; exit 1; }
+
+if [ -e "$dir/server.pem" ] && [ $force = 0 ]; then
+	echo "bepsi-mkcert: $dir/server.pem exists; use -f to replace it" >&2
+	exit 1
+fi
+mkdir -p "$dir" || exit 1
+
+san=""
+for n in "$@"; do
+	case $n in
+	*[!A-Za-z0-9.:-]*) echo "bepsi-mkcert: bad name '$n'" >&2; exit 2 ;;
+	esac
+	case $n in
+	*[!0-9.]*) kind=DNS ;;	# anything with a letter
+	*) kind=IP ;;
+	esac
+	case $n in *:*) kind=IP ;; esac	# IPv6
+	san="${san:+$san,}$kind:$n"
+done
+
+tmp=$(mktemp -d "$dir/.mkcert.XXXXXX") || exit 1
+trap 'rm -rf "$tmp"' EXIT
+umask 077
+openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 -nodes \
+	-days 825 -subj "/CN=$1" -addext "subjectAltName=$san" \
+	-keyout "$tmp/key.pem" -out "$tmp/cert.pem" 2>/dev/null || {
+	echo "bepsi-mkcert: openssl failed" >&2; exit 1; }
+cat "$tmp/key.pem" "$tmp/cert.pem" > "$tmp/server.pem"
+
+# Readable by the web server's group when that exists.
+if getent group bepsi-web >/dev/null 2>&1; then
+	chgrp bepsi-web "$tmp/server.pem" 2>/dev/null && chmod 0640 "$tmp/server.pem"
+fi
+chmod 0644 "$tmp/cert.pem"
+mv "$tmp/server.pem" "$dir/server.pem" && mv "$tmp/cert.pem" "$dir/cert.pem" || exit 1
+echo "wrote $dir/server.pem and $dir/cert.pem for: $san"
+echo "install $dir/cert.pem on the tablet so its browser trusts this server."

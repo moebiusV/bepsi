@@ -1,0 +1,26 @@
+# httpd.conf -- bepsi-httpd (civetweb) configuration.  Copy to
+# $(sysconfdir)/bepsi/httpd.conf.  One "option value" per line.
+
+# HTTPS on the standard port.  The service may bind it (see the unit).
+listening_ports       443s
+ssl_certificate       /etc/bepsi/tls/server.pem
+# 4 = TLS 1.2 and newer.
+ssl_protocol_version  4
+
+# The pages: index.cgi, status.cgi and admin.cgi live here with the static
+# files, and every *.cgi is run as a program.
+document_root         /usr/share/bepsi/www
+cgi_pattern           **.cgi$
+index_files           index.cgi
+enable_directory_listing no
+
+# Password for the admin page only; make the file with bepsi-passwd.  The
+# realm must match what bepsi-passwd writes (bepsi).
+authentication_domain bepsi
+protect_uri           /admin.cgi=/etc/bepsi/htpasswd
+
+# Where the CGI programs find bepsid.
+cgi_environment       BEPSI_SOCKET=/run/bepsi/bepsid.sock
+
+# Each tablet waiting for a payment holds one request for up to 20 seconds.
+num_threads           8

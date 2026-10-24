@@ -34,3 +34,5 @@ bepsi-*.tar.*
 /bepsi-pi/
 data/bepsid.service
 data/bepsi-watch-ws@.service
+scripts/bepsi-mkcert
+scripts/bepsi-passwd

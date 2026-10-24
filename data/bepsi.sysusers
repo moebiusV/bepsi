@@ -6,3 +6,6 @@ u bepsi - "Bepsi vending machine" /var/lib/bepsi
 # bepsid socket.
 u bepsi-watch - "Bepsi payment watchers" /var/empty
 m bepsi-watch bepsi
+# The web server runs as its own user too; the CGI pages it starts inherit it.
+u bepsi-web - "Bepsi web server" /var/empty
+m bepsi-web bepsi

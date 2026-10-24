@@ -1,0 +1,86 @@
+#!/bin/sh
+# Copyright (c) 2026 moebiusV
+#
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+
+# Add a user, or change a password, in the admin password file.
+#   bepsi-passwd [-f FILE] USER
+# Asks for the password twice (nothing is echoed and it never appears on a
+# command line).  The file holds user:realm:MD5(user:realm:password), the form
+# civetweb's digest authentication reads; the realm is "bepsi".  The file is
+# rebuilt beside the old one and moved into place when complete.
+
+for arg in "$@"; do
+	case $arg in
+	--version) echo "bepsi-passwd (@PACKAGE_NAME@) @PACKAGE_VERSION@"; exit 0 ;;
+	--help) cat <<'USAGE'
+usage: bepsi-passwd [-f FILE] USER
+Add a user, or change a password, in the admin password file
+(default /etc/bepsi/htpasswd). The password is asked for, never given
+on the command line.
+  -f FILE  use another password file
+      --help     display this help and exit
+      --version  output version information and exit
+USAGE
+		exit 0 ;;
+	esac
+done
+
+file=/etc/bepsi/htpasswd
+realm=bepsi
+while getopts f: opt; do
+	case $opt in
+	f) file=$OPTARG ;;
+	*) echo "usage: bepsi-passwd [-f FILE] USER" >&2; exit 2 ;;
+	esac
+done
+shift $((OPTIND - 1))
+[ $# -eq 1 ] || { echo "usage: bepsi-passwd [-f FILE] USER" >&2; exit 2; }
+user=$1
+case $user in
+''|*[!A-Za-z0-9._-]*) echo "bepsi-passwd: user names may use letters, digits . _ -" >&2; exit 2 ;;
+esac
+command -v md5sum >/dev/null 2>&1 || { echo "bepsi-passwd: md5sum not found" >&2; exit 1; }
+
+if [ -t 0 ]; then
+	trap 'stty echo 2>/dev/null' EXIT INT TERM
+	stty -echo 2>/dev/null
+	printf 'Password for %s: ' "$user" >&2; read -r pw1; echo >&2
+	printf 'Again: ' >&2; read -r pw2; echo >&2
+	stty echo 2>/dev/null
+else
+	read -r pw1; pw2=$pw1	# from a pipe, for scripts
+fi
+[ "$pw1" = "$pw2" ] || { echo "bepsi-passwd: the passwords differ" >&2; exit 1; }
+[ -n "$pw1" ] || { echo "bepsi-passwd: empty password" >&2; exit 1; }
+
+hash=$(printf '%s:%s:%s' "$user" "$realm" "$pw1" | md5sum | cut -d' ' -f1)
+umask 027
+tmp=$(mktemp "${file}.XXXXXX") || exit 1
+trap 'rm -f "$tmp"' EXIT
+[ -f "$file" ] && grep -v "^$user:$realm:" "$file" > "$tmp"
+printf '%s:%s:%s\n' "$user" "$realm" "$hash" >> "$tmp"
+if [ -f "$file" ]; then
+	chmod --reference="$file" "$tmp" 2>/dev/null
+	chgrp --reference="$file" "$tmp" 2>/dev/null
+elif getent group bepsi-web >/dev/null 2>&1; then
+	chgrp bepsi-web "$tmp" 2>/dev/null
+fi
+mv "$tmp" "$file" || exit 1
+echo "set the password for $user in $file" >&2
