@@ -38,6 +38,36 @@ on-chain wallet payments. The kiosk shows a QR code to it
 on-chain listeners just see the payment arrive. Its source is **not** in this
 repo (see below).
 
+## Supported payment rails
+
+Taken from the working code in `Attic/dispenser/src/listeners/` and
+`Attic/dispenser/src/constants.js`. Every rail ends the same way: the
+listener works out which slot was paid for and asks the dispenser to fire it.
+
+| Rail | Listener | What is accepted | How it is detected |
+|---|---|---|---|
+| EVM on-chain | `evmL.js` | Stablecoins and the BEPSI token on Polygon, Base, Arbitrum, Optimism, HyperEVM (Hyperliquid) and Citrea. Tokens per chain: see below. | ERC-20 transfer events to `PAYMENT_ADDRESS` (`HYPEREVM_PAYMENT_ADDRESS` on HyperEVM). The drink is chosen by the last digit of the amount. |
+| Solana | `solanaL.js` | USDC | Transfers to `SOLANA_TREASURY_ADDRESS`. |
+| Lightning | `lightningL.js` | sats | LNbits websocket (`LIGHTNING_LNBIT_URL`), one LNURL address per drink. |
+| Spark (Bitcoin L2) | `sparkL.js` | sats and the BEPSI token | A separate Spark wallet per slot (`SPARK_PIN_*`); a balance increase triggers the dispense. |
+| Ark (Arkade) | `arkadeL.js` | Bitcoin via Ark | BTCPay websocket (`ARKADE_WS_URL`); the web app creates the invoice through `/api/ark-invoice`. |
+| Discord | `discordL.js` | Not a payment: an emoji reaction by a member | A reaction on a gated channel dispenses that slot. The same bot posts "hopper N is low" alerts. |
+
+EVM tokens by chain: Polygon USDC and USDC.e; Base USDC; Arbitrum USDC and
+USDC.e; Optimism USDC; HyperEVM USDC, USDT0 and BEPSI; Citrea ctUSD and BEPSI.
+Each rail is optional and turned on by setting its environment variables; the
+service refuses to start only if none is configured.
+
+Not all rails are offered on the tablet. The kiosk page has four buttons:
+Bitcoin (a BTCPay/Ark invoice), Lightning, Spark, and Crypto, which only shows
+a QR code to the public wallet site. Solana and the EVM chains are therefore
+paid through that site, not on the tablet. A listener working does not mean the
+kiosk UI offers that rail.
+
+Known oddity: the HyperEVM BEPSI token's symbol is spelled `BESPI` in
+`Attic/dispenser/src/constants.js`.
+The old `Attic/dispenser/README.md` is out of date (it lists MATIC and DAI).
+
 ## Related repositories and services
 
 Original upstreams (the repos in `apps/` were forked from these; the forks are
