@@ -24,5 +24,18 @@ AC_SEARCH_LIBS([sqlite3_open], [sqlite3], [],
   [AC_MSG_ERROR([SQLite 3 is required (libsqlite3-dev)])])
 AC_CHECK_HEADERS([sqlite3.h], [], [AC_MSG_ERROR([sqlite3.h is required])])
 
-AC_CONFIG_FILES([Makefile compat/Makefile lib/Makefile src/Makefile tests/Makefile])
+dnl Where to install the systemd unit and sysusers snippet.  Packagers
+dnl override these, e.g. --with-systemdsystemunitdir=/lib/systemd/system.
+AC_ARG_WITH([systemdsystemunitdir],
+  [AS_HELP_STRING([--with-systemdsystemunitdir=DIR],
+    [directory for systemd service files [LIBDIR/systemd/system]])],
+  [], [with_systemdsystemunitdir='${libdir}/systemd/system'])
+AC_ARG_WITH([sysusersdir],
+  [AS_HELP_STRING([--with-sysusersdir=DIR],
+    [directory for sysusers.d files [LIBDIR/sysusers.d]])],
+  [], [with_sysusersdir='${libdir}/sysusers.d'])
+AC_SUBST([systemdsystemunitdir], [$with_systemdsystemunitdir])
+AC_SUBST([sysusersdir], [$with_sysusersdir])
+
+AC_CONFIG_FILES([Makefile compat/Makefile lib/Makefile src/Makefile data/Makefile tests/Makefile])
 AC_OUTPUT

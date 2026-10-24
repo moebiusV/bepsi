@@ -2,7 +2,7 @@
 
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = compat lib src tests
+SUBDIRS = compat lib src data tests
 
 EXTRA_DIST = README.md COPYING
 

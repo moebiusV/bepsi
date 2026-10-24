@@ -63,6 +63,25 @@ mapping; `bepsid --help` for options. It runs in the foreground for systemd.
   that can connect can fire a solenoid or edit stock, so keep it to the
   watcher and web users.
 
+### Installing on the machine
+
+```
+./configure --prefix=/usr --sysconfdir=/etc \
+            --with-systemdsystemunitdir=/lib/systemd/system
+make && sudo make install
+sudo systemd-sysusers                      # creates user/group bepsi (and gpio if missing)
+sudo install -d /etc/bepsi
+sudo cp /usr/share/doc/bepsi/bepsid.conf.example /etc/bepsi/bepsid.conf
+sudoedit /etc/bepsi/bepsid.conf            # check chip and line numbers with gpioinfo
+sudo systemctl enable --now bepsid
+```
+
+The unit runs `bepsid` as user `bepsi` with the `gpio` group, a private
+`/run/bepsi` (socket) and `/var/lib/bepsi` (database), and systemd sandboxing.
+It has been checked with `systemd-analyze verify` but not yet run on the
+machine. Stop the old JavaScript service first. Add the future watcher and web
+users to group `bepsi` so they can reach the socket.
+
 ## Layout
 
 | Path (all under `Attic/`) | What it is |

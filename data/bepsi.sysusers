@@ -1,0 +1,4 @@
+# Service user and group for the bepsi daemons.  Members of group bepsi can
+# connect to the bepsid socket; add the watcher and web users to it.
+g gpio - -
+u bepsi - "Bepsi vending machine" /var/lib/bepsi

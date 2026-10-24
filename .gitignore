@@ -30,3 +30,4 @@ bepsi-*.tar.*
 # local scratch clones of the original repos
 /yvrbepsi-ui/
 /bepsi-pi/
+data/bepsid.service

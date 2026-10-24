@@ -17,4 +17,5 @@ if NEED_FREEZERO
 libcompat_la_SOURCES += freezero.c
 endif
 
-dist_man_MANS = imsg_init.3
+## The vendored man page is kept for reference only, not installed.
+EXTRA_DIST = imsg_init.3

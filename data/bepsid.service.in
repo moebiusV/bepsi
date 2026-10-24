@@ -1,0 +1,39 @@
+[Unit]
+Description=Bepsi hardware daemon (solenoid GPIO and stock database)
+Documentation=https://github.com/moebiusV/bepsi
+After=local-fs.target
+
+[Service]
+Type=simple
+User=bepsi
+Group=bepsi
+# gpio grants access to /dev/gpiochip* on Raspberry Pi OS; see bepsi.sysusers.
+SupplementaryGroups=gpio
+ExecStart=@sbindir@/bepsid -c @sysconfdir@/bepsi/bepsid.conf
+Restart=on-failure
+RestartSec=2
+
+# Socket directory /run/bepsi (group bepsi, so watchers and the web daemon in
+# that group can connect) and database directory /var/lib/bepsi.
+RuntimeDirectory=bepsi
+RuntimeDirectoryMode=0750
+StateDirectory=bepsi
+StateDirectoryMode=0750
+
+# Hardening.  The daemon only needs its two directories and the GPIO devices.
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_UNIX
+RestrictNamespaces=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+SystemCallArchitectures=native
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target
