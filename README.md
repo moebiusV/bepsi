@@ -6,15 +6,22 @@ One Raspberry Pi sits inside the machine. It serves the touchscreen website
 and drives the dispensing solenoids over GPIO. A Fire tablet on the machine
 displays that website over wifi.
 
+## Status
+
+The JavaScript code below is the working machine as deployed. It now lives in
+`Attic/` and is being reimplemented in C, with a proper module and directory
+structure and full GNU packaging (autoconf/automake). `Attic/` stays until the
+C version reaches parity; nothing there is under active development.
+
 ## Layout
 
-| Path | What it is |
+| Path (all under `Attic/`) | What it is |
 |---|---|
-| `apps/web` | Next.js storefront shown on the tablet: drink selection, then Lightning / Spark / Ark / crypto-QR payment pages. Receives payment confirmations from the dispenser over SSE (`:3500/payment-events`). |
-| `apps/dispenser` | Node service on the Pi. Listens for payments (EVM, Solana, Lightning, Spark, Arkade, Discord), then pulses the GPIO pin for the paid drink. Also serves `/payment-events` and `/health` on port 3500. |
+| `Attic/web` | Next.js storefront shown on the tablet: drink selection, then Lightning / Spark / Ark / crypto-QR payment pages. Receives payment confirmations from the dispenser over SSE (`:3500/payment-events`). |
+| `Attic/dispenser` | Node service on the Pi. Listens for payments (EVM, Solana, Lightning, Spark, Arkade, Discord), then pulses the GPIO pin for the paid drink. Also serves `/payment-events` and `/health` on port 3500. |
 
 The two apps were merged from separate repos with full history preserved
-(see [History](#history)).
+(see [History](#history)); the old `apps/` paths are `Attic/` now.
 
 ## How it works
 
@@ -27,7 +34,7 @@ The two apps were merged from separate repos with full history preserved
 
 A second, public site, [bepsi.dctrl.wtf](https://bepsi.dctrl.wtf), takes
 on-chain wallet payments. The kiosk shows a QR code to it
-(`apps/web/src/pages/crypto-qr.tsx`). It does not talk to the Pi; the Pi's
+(`Attic/web/src/pages/crypto-qr.tsx`). It does not talk to the Pi; the Pi's
 on-chain listeners just see the payment arrive. Its source is **not** in this
 repo (see below).
 
@@ -36,8 +43,8 @@ repo (see below).
 Original upstreams (the repos in `apps/` were forked from these; the forks are
 the live code):
 
-- [GitYVR/yvrbepsi-ui](https://github.com/GitYVR/yvrbepsi-ui) — upstream of `apps/web`. Its `main` carries the public wallet-payment page behind bepsi.dctrl.wtf (HyperEVM, Citrea, ctUSD, BEPSI token), not yet merged here.
-- [GitYVR/bepsi-pi](https://github.com/GitYVR/bepsi-pi) — upstream of `apps/dispenser`. Nothing upstream is missing from this repo.
+- [GitYVR/yvrbepsi-ui](https://github.com/GitYVR/yvrbepsi-ui) — upstream of `Attic/web`. Its `main` carries the public wallet-payment page behind bepsi.dctrl.wtf (HyperEVM, Citrea, ctUSD, BEPSI token), not yet merged here.
+- [GitYVR/bepsi-pi](https://github.com/GitYVR/bepsi-pi) — upstream of `Attic/dispenser`. Nothing upstream is missing from this repo.
 - [echennells/yvrbepsi-ui](https://github.com/echennells/yvrbepsi-ui), [echennells/bepsi-pi](https://github.com/echennells/bepsi-pi) — the forks that were running live when this repo was created.
 
 Older Bepsi code, kept for reference: [GitYVR/yvrbepsi-OLD](https://github.com/GitYVR/yvrbepsi-OLD), [GitYVR/bitcoil-pi](https://github.com/GitYVR/bitcoil-pi).
@@ -53,11 +60,11 @@ NocoDB at `nocodb.dctrl.wtf` (purchase log).
 
 ## Planned
 
-- Stock accounting database in `apps/web`: current stock per slot, owner can
+- Stock accounting database in `Attic/web`: current stock per slot, owner can
   update counts and swap products between slots. Stock should be decremented
   by the dispenser, since it decides when a dispense happens.
 - A single source of truth for slot / pin / product mapping (currently
-  duplicated in `apps/web/src/data/drinks.ts` and the dispenser's `PIN_*_NAME`
+  duplicated in `Attic/web/src/data/drinks.ts` and the dispenser's `PIN_*_NAME`
   env vars).
 
 ## Hardware notes
@@ -69,9 +76,9 @@ NocoDB at `nocodb.dctrl.wtf` (purchase log).
 
 ## History
 
-`apps/web` and `apps/dispenser` keep the complete commit history of their
+`Attic/web` and `Attic/dispenser` keep the complete commit history of their
 source repos with paths rewritten under those directories (commit hashes
 differ from the originals; authors, dates and messages are unchanged). All
 branches are kept, prefixed `web/` or `dispenser/`, so for example both
 `web/pi-deployed-20261023` and `dispenser/pi-deployed-20261023` exist.
-Use `git log -- apps/web/src/...` to follow a file.
+Use `git log -- Attic/web/src/...` to follow a file.
