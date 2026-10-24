@@ -2,3 +2,7 @@
 # connect to the bepsid socket; add the watcher and web users to it.
 g gpio - -
 u bepsi - "Bepsi vending machine" /var/lib/bepsi
+# The payment watchers run as their own user, in group bepsi only to reach the
+# bepsid socket.
+u bepsi-watch - "Bepsi payment watchers" /var/empty
+m bepsi-watch bepsi

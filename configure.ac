@@ -37,5 +37,19 @@ AC_ARG_WITH([sysusersdir],
 AC_SUBST([systemdsystemunitdir], [$with_systemdsystemunitdir])
 AC_SUBST([sysusersdir], [$with_sysusersdir])
 
+dnl The payment watchers need a websocket client library.
+AC_ARG_ENABLE([watchers],
+  [AS_HELP_STRING([--disable-watchers],
+    [do not build the payment watchers (they need libwebsockets)])],
+  [], [enable_watchers=yes])
+AS_IF([test "x$enable_watchers" = xyes], [
+  AC_CHECK_HEADERS([libwebsockets.h], [],
+    [AC_MSG_ERROR([libwebsockets.h not found (libwebsockets-dev); or use --disable-watchers])])
+  AC_CHECK_LIB([websockets], [lws_create_context], [LWS_LIBS=-lwebsockets],
+    [AC_MSG_ERROR([libwebsockets not found; or use --disable-watchers])])
+])
+AC_SUBST([LWS_LIBS])
+AM_CONDITIONAL([BUILD_WATCHERS], [test "x$enable_watchers" = xyes])
+
 AC_CONFIG_FILES([Makefile compat/Makefile lib/Makefile src/Makefile data/Makefile tests/Makefile])
 AC_OUTPUT

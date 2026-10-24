@@ -25,8 +25,9 @@ make distcheck
 
 Requires a C compiler, make and the GNU autotools. Currently the tree holds
 the autotools skeleton, the vendored imsg library (`compat/`), the wire
-protocol (`lib/`), the hardware daemon `bepsid` (`src/`) and tests. The payment
-watchers and the web daemon are not written yet.
+protocol (`lib/`), the hardware daemon `bepsid` (`src/`) and tests. The Lightning
+watcher (`bepsi-watch-lightning`) is written; the other watchers and the web
+daemon are not.
 
 The protocol between the daemons is defined in `lib/bepsi_proto.h`: watchers
 send `PAID` to the hardware daemon, which replies to subscribers with
@@ -63,6 +64,24 @@ mapping; `bepsid --help` for options. It runs in the foreground for systemd.
   that can connect can fire a solenoid or edit stock, so keep it to the
   watcher and web users.
 
+## bepsi-watch-lightning
+
+Holds a websocket (ws:// or wss://, via libwebsockets) open to LNbits. Each
+message is `PIN-SATS` such as `516-1000`; the pin is mapped to a slot with
+`map` lines and the payment is sent to `bepsid`. It reconnects with back-off,
+uses websocket pings to notice a dead connection, and never logs the URL (it
+can hold a wallet key). It runs as its own user, `bepsi-watch`, which can reach
+the bepsid socket but not the GPIO or the database. See
+`etc/watch-lightning.conf.example`.
+
+**Known limit:** the LNbits message carries no payment hash, so the watcher
+makes up a unique id per message. That stops nothing if LNbits itself sends the
+same payment twice. It does mean one message can never dispense twice, and if
+`bepsid` does not answer in time the watcher logs it and does not retry, so
+that a slow answer cannot turn into a second drink; check those by hand.
+
+Configure with `--disable-watchers` to build without libwebsockets.
+
 ### Installing on the machine
 
 ```
@@ -79,8 +98,8 @@ sudo systemctl enable --now bepsid
 The unit runs `bepsid` as user `bepsi` with the `gpio` group, a private
 `/run/bepsi` (socket) and `/var/lib/bepsi` (database), and systemd sandboxing.
 It has been checked with `systemd-analyze verify` but not yet run on the
-machine. Stop the old JavaScript service first. Add the future watcher and web
-users to group `bepsi` so they can reach the socket.
+machine. Stop the old JavaScript service first. The watcher user `bepsi-watch` is
+already in group `bepsi`; add the web user too so they can reach the socket.
 
 ## Layout
 

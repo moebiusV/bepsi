@@ -1,0 +1,32 @@
+[Unit]
+Description=Bepsi payment watcher (LNbits Lightning)
+Documentation=https://github.com/moebiusV/bepsi
+After=network-online.target bepsid.service
+Wants=network-online.target bepsid.service
+
+[Service]
+Type=simple
+User=bepsi-watch
+Group=bepsi-watch
+# Group bepsi lets it reach the bepsid socket; it has no GPIO or database access.
+SupplementaryGroups=bepsi
+ExecStart=@sbindir@/bepsi-watch-lightning -c @sysconfdir@/bepsi/watch-lightning.conf
+Restart=always
+RestartSec=5
+
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictNamespaces=yes
+LockPersonality=yes
+SystemCallArchitectures=native
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

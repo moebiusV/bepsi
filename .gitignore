@@ -23,6 +23,7 @@ stamp-h1
 tests/test_imsg
 tests/test_proto
 tests/test_bepsid
+tests/test_lnmsg
 *.log
 *.trs
 bepsi-*.tar.*

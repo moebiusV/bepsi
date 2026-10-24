@@ -1,0 +1,23 @@
+# watch-lightning.conf -- copy to $(sysconfdir)/bepsi/watch-lightning.conf.
+#
+# This file can hold a secret (LNbits puts its key in the websocket URL), so
+# keep it readable only by the watcher:
+#   chown root:bepsi-watch watch-lightning.conf; chmod 0640 watch-lightning.conf
+# The URL is never written to the log, only the host name.
+
+# LNbits websocket.  The messages it sends are "PIN-SATS", e.g. "516-1000".
+url     wss://lnbits.example.com/api/v1/ws/YOUR-WALLET-ID
+
+# bepsid's socket, and the CA bundle used to check the server's certificate.
+socket  /run/bepsi/bepsid.sock
+ca_file /etc/ssl/certs/ca-certificates.crt
+
+# map PIN SLOT: which slot a payment for a pin dispenses.  The pins are the
+# numbers the LNURL addresses were set up with (the old sysfs pin numbers);
+# the slots are the ids in bepsid.conf.  A pin with no map line is ignored.
+map 516 0
+map 517 1
+map 518 2
+map 524 3
+map 525 4
+map 528 5
