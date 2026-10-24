@@ -64,6 +64,26 @@ mapping; `bepsid --help` for options. It runs in the foreground for systemd.
   that can connect can fire a solenoid or edit stock, so keep it to the
   watcher and web users.
 
+## bepsi-httpd, the web server
+
+The tablet UI is served by `bepsi-httpd`, a single-binary HTTPS server: a
+vendored copy of [civetweb](https://github.com/civetweb/civetweb) 1.16 (MIT,
+`third_party/civetweb/`, pinned by checksum), built against the machine's
+OpenSSL 3. It serves static files and runs CGI programs; the pages themselves
+will be small C CGI programs that talk to `bepsid` over the socket. No
+web-server code of ours is involved.
+
+Why a vendored copy rather than Debian's `civetweb` package: Debian's build
+segfaults on the first TLS request (seen on Debian 13 with OpenSSL 3.5), and
+the stand-alone server forwards a CGI program's output only when the program
+exits, so a CGI cannot stream; pages that wait for a payment must long-poll
+instead. Local changes to the vendored source are listed in
+`third_party/civetweb/README.bepsi`; there are none yet.
+
+TLS only: a self-signed certificate is fine on a LAN, but the tablet's browser
+must be told to trust it. TLS 1.0 and 1.1 are refused and plain HTTP is not
+served on the TLS port. Configure with `--disable-httpd` to build without it.
+
 ## bepsictl, control from the shell
 
 `bepsictl` talks to a running `bepsid`, so the owner can manage the machine

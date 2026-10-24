@@ -8,7 +8,11 @@ if BUILD_WATCHERS
 TESTS += watch-ws.sh
 TESTS_ENVIRONMENT += WATCHER=$(abs_top_builddir)/src/bepsi-watch-ws; export WATCHER; FAKE_WS=$(abs_srcdir)/fake_ws.py; export FAKE_WS;
 endif
-EXTRA_DIST = watch-ws.sh fake_ws.py bepsictl.sh
+EXTRA_DIST = watch-ws.sh fake_ws.py bepsictl.sh httpd.sh
+if BUILD_HTTPD
+TESTS += httpd.sh
+TESTS_ENVIRONMENT += HTTPD=$(abs_top_builddir)/src/bepsi-httpd; export HTTPD;
+endif
 
 test_wsmsg_SOURCES = test_wsmsg.c
 test_wsmsg_LDADD = $(top_builddir)/lib/libbepsi.la \

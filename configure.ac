@@ -37,6 +37,27 @@ AC_ARG_WITH([sysusersdir],
 AC_SUBST([systemdsystemunitdir], [$with_systemdsystemunitdir])
 AC_SUBST([sysusersdir], [$with_sysusersdir])
 
+dnl bepsi-httpd (vendored civetweb) needs OpenSSL 3 for TLS.
+AC_ARG_ENABLE([httpd],
+  [AS_HELP_STRING([--disable-httpd],
+    [do not build bepsi-httpd (needs OpenSSL 3 and pthreads)])],
+  [], [enable_httpd=yes])
+AS_IF([test "x$enable_httpd" = xyes], [
+  AC_CHECK_HEADERS([openssl/ssl.h], [],
+    [AC_MSG_ERROR([openssl/ssl.h not found (libssl-dev); or use --disable-httpd])])
+  AC_MSG_CHECKING([for OpenSSL 3])
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <openssl/opensslv.h>
+#if OPENSSL_VERSION_NUMBER < 0x30000000L
+#error "OpenSSL 3 is required"
+#endif]], [[]])],
+    [AC_MSG_RESULT([yes])],
+    [AC_MSG_RESULT([no]); AC_MSG_ERROR([OpenSSL 3 is required; or use --disable-httpd])])
+  AC_CHECK_LIB([ssl], [SSL_new], [HTTPD_LIBS="-lssl -lcrypto -lpthread"],
+    [AC_MSG_ERROR([libssl not found; or use --disable-httpd])], [-lcrypto])
+])
+AC_SUBST([HTTPD_LIBS])
+AM_CONDITIONAL([BUILD_HTTPD], [test "x$enable_httpd" = xyes])
+
 dnl The payment watchers need a websocket client library.
 AC_ARG_ENABLE([watchers],
   [AS_HELP_STRING([--disable-watchers],

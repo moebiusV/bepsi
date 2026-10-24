@@ -1,5 +1,7 @@
 ## bepsid: the hardware daemon (GPIO, stock database).
 
+EXTRA_DIST =
+
 sbin_PROGRAMS = bepsid
 bin_PROGRAMS = bepsictl
 
@@ -26,4 +28,29 @@ bepsi_watch_ws_CPPFLAGS = -I$(top_srcdir)/compat -I$(top_srcdir)/lib \
 bepsi_watch_ws_CFLAGS = -Wall -Wextra
 bepsi_watch_ws_LDADD = $(top_builddir)/lib/libbepsi.la \
 	       $(top_builddir)/compat/libcompat.la $(LWS_LIBS)
+endif
+
+if BUILD_HTTPD
+sbin_PROGRAMS += bepsi-httpd
+
+## The vendored civetweb, built as a stand-alone server (see
+## third_party/civetweb/README.bepsi).  Its sources are not ours, so they are
+## built without our warning flags.
+bepsi_httpd_SOURCES = $(top_srcdir)/third_party/civetweb/main.c \
+	$(top_srcdir)/third_party/civetweb/civetweb.c \
+	$(top_srcdir)/third_party/civetweb/civetweb.h
+bepsi_httpd_CPPFLAGS = -I$(top_srcdir)/third_party/civetweb \
+	-DNO_SSL_DL -DOPENSSL_API_3_0 -DUSE_IPV6
+bepsi_httpd_LDADD = $(HTTPD_LIBS)
+EXTRA_DIST += $(top_srcdir)/third_party/civetweb/handle_form.inl \
+	$(top_srcdir)/third_party/civetweb/match.inl \
+	$(top_srcdir)/third_party/civetweb/md5.inl \
+	$(top_srcdir)/third_party/civetweb/openssl_dl.inl \
+	$(top_srcdir)/third_party/civetweb/response.inl \
+	$(top_srcdir)/third_party/civetweb/sha1.inl \
+	$(top_srcdir)/third_party/civetweb/sort.inl \
+	$(top_srcdir)/third_party/civetweb/timer.inl \
+	$(top_srcdir)/third_party/civetweb/LICENSE.md \
+	$(top_srcdir)/third_party/civetweb/CREDITS.md \
+	$(top_srcdir)/third_party/civetweb/README.bepsi
 endif

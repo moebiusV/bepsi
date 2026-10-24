@@ -1,0 +1,19 @@
+civetweb 1.16, vendored for bepsi-httpd.
+
+Source:   https://github.com/civetweb/civetweb  tag v1.16
+Tarball:  civetweb-1.16.tar.gz
+SHA-256:  f0e471c1bf4e7804a6cfb41ea9d13e7d623b2bcc7bc1e2a4dd54951a24d60285
+License:  MIT; see LICENSE.md (CREDITS.md lists the authors).
+
+Why vendored: bepsi wants a single-binary HTTPS server with CGI, built against
+the machine's OpenSSL 3.  Debian's civetweb 1.16 package segfaults on the first
+TLS request (checked on Debian 13 with OpenSSL 3.5), and it forwards CGI output
+only when the script exits, so it cannot stream.  Building this source with
+-DOPENSSL_API_3_0 -DNO_SSL_DL gives a ~200 KB binary that serves TLS 1.2/1.3.
+
+Files kept: civetweb.c, civetweb.h, main.c (the stand-alone server) and the
+.inl files they include for this build (sort, match, response, timer,
+handle_form, openssl_dl, md5, sha1).  Lua, Duktape, mbedTLS, wolfSSL, zlib and
+HTTP/2 sources are left out.
+
+Local modifications: none.  List any here, with the reason, as they are made.
