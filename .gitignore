@@ -23,7 +23,7 @@ stamp-h1
 tests/test_imsg
 tests/test_proto
 tests/test_bepsid
-tests/test_lnmsg
+tests/test_wsmsg
 *.log
 *.trs
 bepsi-*.tar.*
@@ -32,3 +32,4 @@ bepsi-*.tar.*
 /yvrbepsi-ui/
 /bepsi-pi/
 data/bepsid.service
+data/bepsi-watch-ws@.service

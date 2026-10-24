@@ -38,13 +38,15 @@
 int bepsi_client_pay(const char *sockpath, const struct bepsi_paid *p,
     enum bepsi_status *status, int timeout_ms);
 
-/* Parse the text of an LNbits notification, "PIN-SATS" such as "516-1000".
- * Returns 0 and sets *pin and *sats, or -1 if the text is not exactly that. */
-int bepsi_ln_parse(const char *msg, size_t len, uint32_t *pin, uint64_t *sats);
+/* Parse the text of a watcher notification, "PIN-SATS" such as "516-1000" or
+ * "518-5000.0" (BTCPay writes a decimal part; it is dropped, as parseInt did
+ * in the old JavaScript).  Returns 0 and sets *pin and *sats, or -1 if the
+ * text is not exactly that. */
+int bepsi_ws_parse(const char *msg, size_t len, uint32_t *pin, uint64_t *sats);
 
-/* Make a payment id that is unique to this message: "ln-" and a time, a
- * process id and a counter.  Needed because the LNbits notification carries
- * no payment hash.  buf must hold BEPSI_PAYID_LEN bytes. */
-void bepsi_ln_payment_id(char *buf, size_t len);
+/* Make a payment id that is unique to this message: `prefix`, a time, a
+ * process id and a counter.  Needed because these notifications carry no
+ * payment hash.  buf must hold BEPSI_PAYID_LEN bytes. */
+void bepsi_ws_payment_id(char *buf, size_t len, const char *prefix);
 
 #endif /* BEPSI_CLIENT_H */

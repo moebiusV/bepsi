@@ -11,12 +11,12 @@ bepsid_LDADD = $(top_builddir)/lib/libbepsi.la \
 bepsid_LDADD += $(LIBS)
 
 if BUILD_WATCHERS
-sbin_PROGRAMS += bepsi-watch-lightning
+sbin_PROGRAMS += bepsi-watch-ws
 
-bepsi_watch_lightning_SOURCES = watch-lightning.c
-bepsi_watch_lightning_CPPFLAGS = -I$(top_srcdir)/compat -I$(top_srcdir)/lib \
+bepsi_watch_ws_SOURCES = watch-ws.c
+bepsi_watch_ws_CPPFLAGS = -I$(top_srcdir)/compat -I$(top_srcdir)/lib \
 		  -DSYSCONFDIR='"$(sysconfdir)"'
-bepsi_watch_lightning_CFLAGS = -Wall -Wextra
-bepsi_watch_lightning_LDADD = $(top_builddir)/lib/libbepsi.la \
+bepsi_watch_ws_CFLAGS = -Wall -Wextra
+bepsi_watch_ws_LDADD = $(top_builddir)/lib/libbepsi.la \
 	       $(top_builddir)/compat/libcompat.la $(LWS_LIBS)
 endif

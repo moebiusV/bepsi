@@ -19,7 +19,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-/* Client side of the bepsid protocol and the LNbits message parser; see
+/* Client side of the bepsid protocol and the watcher message parser; see
  * bepsi_client.h. */
 
 #ifdef HAVE_CONFIG_H
@@ -120,7 +120,7 @@ out:
 }
 
 int
-bepsi_ln_parse(const char *msg, size_t len, uint32_t *pin, uint64_t *sats)
+bepsi_ws_parse(const char *msg, size_t len, uint32_t *pin, uint64_t *sats)
 {
 	uint64_t a = 0, b = 0;
 	size_t i = 0, digits;
@@ -145,7 +145,16 @@ bepsi_ln_parse(const char *msg, size_t len, uint32_t *pin, uint64_t *sats)
 			return -1;
 		b = b * 10 + (uint64_t)(msg[i] - '0');
 	}
-	if (digits == 0 || i != len)
+	if (digits == 0)
+		return -1;
+	if (i < len && msg[i] == '.') {		/* "5000.0": drop the fraction */
+		for (i++, digits = 0; i < len && msg[i] >= '0' && msg[i] <= '9';
+		    i++, digits++)
+			;
+		if (digits == 0 || digits > 8)
+			return -1;
+	}
+	if (i != len)
 		return -1;
 	*pin = (uint32_t)a;
 	*sats = b;
@@ -153,13 +162,13 @@ bepsi_ln_parse(const char *msg, size_t len, uint32_t *pin, uint64_t *sats)
 }
 
 void
-bepsi_ln_payment_id(char *buf, size_t len)
+bepsi_ws_payment_id(char *buf, size_t len, const char *prefix)
 {
 	static unsigned seq;
 	struct timespec ts;
 
 	clock_gettime(CLOCK_REALTIME, &ts);
-	snprintf(buf, len, "ln-%llx%09lx-%x-%x",
+	snprintf(buf, len, "%s%llx%09lx-%x-%x", prefix,
 	    (unsigned long long)ts.tv_sec, (unsigned long)ts.tv_nsec,
 	    (unsigned)getpid(), ++seq);
 }

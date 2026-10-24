@@ -19,7 +19,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-"""A stand-in for the LNbits websocket, for tests.
+"""A stand-in for the LNbits or BTCPay websocket, for tests.
 
 Usage: fake_lnbits.py PORTFILE
 Listens on a free local port, writes the port number to PORTFILE, and to the
@@ -34,7 +34,7 @@ import sys
 import time
 
 GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
-MESSAGES = ["516-1000", "999-5", "garbage", "516-250"]
+MESSAGES = ["516-1000", "999-5", "garbage", "516-250", "517-5000.0"]
 
 
 def frame(text):

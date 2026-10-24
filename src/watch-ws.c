@@ -19,11 +19,13 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-/* bepsi-watch-lightning -- payment watcher for LNbits.
+/* bepsi-watch-ws -- payment watcher for websocket sources (LNbits Lightning,
+ * BTCPay Arkade).
  *
- * Holds a websocket open to LNbits.  Each text message is "PIN-SATS" (the
- * pin number the customer's LNURL belongs to, then the sats paid); the pin is
- * mapped to a slot and reported to bepsid as a PAID message.  Reconnects with
+ * Holds a websocket open.  Each text message is "PIN-SATS" (the pin number
+ * the customer's invoice belongs to, then the sats paid); the pin is mapped
+ * to a slot and reported to bepsid as a PAID message.  `rail` in the
+ * configuration says which payment rail the source is.  Reconnects with
  * back-off, and uses websocket pings to notice a dead connection.  It has no
  * access to the GPIO or the database: it can only ask bepsid. */
 
@@ -57,6 +59,8 @@ struct wconf {
 	char		url[512];
 	char		socket[256];
 	char		ca_file[256];
+	char		idprefix[8];
+	uint32_t	rail;
 	size_t		nmap;
 	struct { uint32_t pin, slot; } map[MAX_MAP];
 };
@@ -76,7 +80,7 @@ logmsg(const char *fmt, ...)
 	char ts[32];
 
 	strftime(ts, sizeof(ts), "%Y-%m-%dT%H:%M:%S", gmtime(&now));
-	fprintf(stderr, "%sZ bepsi-watch-lightning: ", ts);
+	fprintf(stderr, "%sZ bepsi-watch-ws: ", ts);
 	va_start(ap, fmt);
 	vfprintf(stderr, fmt, ap);
 	va_end(ap);
@@ -90,7 +94,7 @@ on_signal(int sig)
 	stop = 1;
 }
 
-/* url, socket, ca_file and "map PIN SLOT" lines; '#' comments. */
+/* url, rail, socket, ca_file and "map PIN SLOT" lines; '#' comments. */
 static int
 load_conf(const char *path, char *err, size_t errlen)
 {
@@ -99,6 +103,8 @@ load_conf(const char *path, char *err, size_t errlen)
 	int lineno = 0, rc = 0;
 
 	memset(&conf, 0, sizeof(conf));
+	conf.rail = BEPSI_RAIL_LIGHTNING;
+	strcpy(conf.idprefix, "ln-");
 	snprintf(conf.socket, sizeof(conf.socket), "%s", "/run/bepsi/bepsid.sock");
 	snprintf(conf.ca_file, sizeof(conf.ca_file), "%s",
 	    "/etc/ssl/certs/ca-certificates.crt");
@@ -129,7 +135,13 @@ load_conf(const char *path, char *err, size_t errlen)
 
 		if (strcmp(key, "url") == 0 && strlen(val) < sizeof(conf.url) && *val)
 			strcpy(conf.url, val);
-		else if (strcmp(key, "socket") == 0 && strlen(val) < sizeof(conf.socket) && *val)
+		else if (strcmp(key, "rail") == 0 && strcmp(val, "lightning") == 0) {
+			conf.rail = BEPSI_RAIL_LIGHTNING;
+			strcpy(conf.idprefix, "ln-");
+		} else if (strcmp(key, "rail") == 0 && strcmp(val, "arkade") == 0) {
+			conf.rail = BEPSI_RAIL_ARKADE;
+			strcpy(conf.idprefix, "ark-");
+		} else if (strcmp(key, "socket") == 0 && strlen(val) < sizeof(conf.socket) && *val)
 			strcpy(conf.socket, val);
 		else if (strcmp(key, "ca_file") == 0 && strlen(val) < sizeof(conf.ca_file) && *val)
 			strcpy(conf.ca_file, val);
@@ -147,7 +159,7 @@ load_conf(const char *path, char *err, size_t errlen)
 				conf.map[conf.nmap++].slot = slot;
 			}
 		} else {
-			snprintf(err, errlen, "%s:%d: bad directive '%.40s'", path, lineno, key);
+			snprintf(err, errlen, "%s:%d: bad directive or value '%.40s'", path, lineno, key);
 			rc = -1;
 		}
 	}
@@ -173,7 +185,7 @@ handle_message(const char *msg, size_t len)
 	uint64_t sats;
 	size_t i;
 
-	if (bepsi_ln_parse(msg, len, &pin, &sats) == -1) {
+	if (bepsi_ws_parse(msg, len, &pin, &sats) == -1) {
 		logmsg("ignoring message that is not PIN-SATS (%zu bytes)", len);
 		return;
 	}
@@ -187,10 +199,10 @@ handle_message(const char *msg, size_t len)
 	}
 	memset(&p, 0, sizeof(p));
 	p.slot = conf.map[i].slot;
-	p.rail = BEPSI_RAIL_LIGHTNING;
+	p.rail = conf.rail;
 	p.amount = sats;
 	strcpy(p.asset, "sats");
-	bepsi_ln_payment_id(p.payment_id, sizeof(p.payment_id));
+	bepsi_ws_payment_id(p.payment_id, sizeof(p.payment_id), conf.idprefix);
 
 	if (bepsi_client_pay(conf.socket, &p, &st, REPLY_MS) == -1)
 		logmsg("%s: no answer from bepsid for %llu sats on pin %u; NOT "
@@ -247,12 +259,12 @@ ws_callback(struct lws *wsi, enum lws_callback_reasons reason, void *user,
 static void
 usage(FILE *out)
 {
-	fprintf(out, "Usage: bepsi-watch-lightning [-c FILE]\n"
-	    "Payment watcher: LNbits websocket to bepsid.\n\n"
+	fprintf(out, "Usage: bepsi-watch-ws [-c FILE]\n"
+	    "Payment watcher: a websocket payment source (LNbits or BTCPay) to bepsid.\n\n"
 	    "  -c, --config=FILE  configuration file (default %s)\n"
 	    "      --help         display this help and exit\n"
 	    "      --version      output version information and exit\n",
-	    SYSCONFDIR "/bepsi/watch-lightning.conf");
+	    SYSCONFDIR "/bepsi/watch-ws.conf");
 }
 
 int
@@ -265,7 +277,7 @@ main(int argc, char **argv)
 		{ NULL, 0, NULL, 0 }
 	};
 	static const struct lws_protocols protocols[] = {
-		{ .name = "lnbits", .callback = ws_callback,
+		{ .name = "bepsi-ws", .callback = ws_callback,
 		  .per_session_data_size = 0, .rx_buffer_size = MAX_MSG },
 		LWS_PROTOCOL_LIST_TERM
 	};
@@ -273,7 +285,7 @@ main(int argc, char **argv)
 		.secs_since_valid_ping = 30,
 		.secs_since_valid_hangup = 60,
 	};
-	const char *confpath = SYSCONFDIR "/bepsi/watch-lightning.conf";
+	const char *confpath = SYSCONFDIR "/bepsi/watch-ws.conf";
 	struct lws_context_creation_info info;
 	struct lws_context *ctx;
 	struct sigaction sa;
@@ -290,7 +302,7 @@ main(int argc, char **argv)
 			usage(stdout);
 			return 0;
 		case 'V':
-			printf("bepsi-watch-lightning (%s) %s\n", PACKAGE_NAME,
+			printf("bepsi-watch-ws (%s) %s\n", PACKAGE_NAME,
 			    PACKAGE_VERSION);
 			return 0;
 		default:
@@ -332,7 +344,8 @@ main(int argc, char **argv)
 	}
 
 	/* The URL can hold a secret key, so only the host is ever logged. */
-	logmsg("watching %s (%zu pins) -> %s", addr, conf.nmap, conf.socket);
+	logmsg("watching %s (%s, %zu pins) -> %s", addr,
+	    bepsi_rail_name(conf.rail), conf.nmap, conf.socket);
 	while (!stop) {
 		struct lws_client_connect_info ci;
 		char fullpath[560];

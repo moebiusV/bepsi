@@ -1,5 +1,7 @@
 [Unit]
-Description=Bepsi payment watcher (LNbits Lightning)
+# One instance per source: bepsi-watch-ws@lightning, bepsi-watch-ws@arkade.
+# Each reads /etc/bepsi/watch-<instance>.conf.
+Description=Bepsi payment watcher (%i)
 Documentation=https://github.com/moebiusV/bepsi
 After=network-online.target bepsid.service
 Wants=network-online.target bepsid.service
@@ -10,7 +12,7 @@ User=bepsi-watch
 Group=bepsi-watch
 # Group bepsi lets it reach the bepsid socket; it has no GPIO or database access.
 SupplementaryGroups=bepsi
-ExecStart=@sbindir@/bepsi-watch-lightning -c @sysconfdir@/bepsi/watch-lightning.conf
+ExecStart=@sbindir@/bepsi-watch-ws -c @sysconfdir@/bepsi/watch-%i.conf
 Restart=always
 RestartSec=5
 

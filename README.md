@@ -25,9 +25,9 @@ make distcheck
 
 Requires a C compiler, make and the GNU autotools. Currently the tree holds
 the autotools skeleton, the vendored imsg library (`compat/`), the wire
-protocol (`lib/`), the hardware daemon `bepsid` (`src/`) and tests. The Lightning
-watcher (`bepsi-watch-lightning`) is written; the other watchers and the web
-daemon are not.
+protocol (`lib/`), the hardware daemon `bepsid` (`src/`) and tests. The Lightning and
+Arkade watcher (`bepsi-watch-ws`) is written; the EVM, Solana, Spark and
+Discord watchers and the web daemon are not.
 
 The protocol between the daemons is defined in `lib/bepsi_proto.h`: watchers
 send `PAID` to the hardware daemon, which replies to subscribers with
@@ -64,19 +64,26 @@ mapping; `bepsid --help` for options. It runs in the foreground for systemd.
   that can connect can fire a solenoid or edit stock, so keep it to the
   watcher and web users.
 
-## bepsi-watch-lightning
+## bepsi-watch-ws, the websocket payment watchers
 
-Holds a websocket (ws:// or wss://, via libwebsockets) open to LNbits. Each
-message is `PIN-SATS` such as `516-1000`; the pin is mapped to a slot with
-`map` lines and the payment is sent to `bepsid`. It reconnects with back-off,
+One program, `bepsi-watch-ws`, covers the two rails that notify over a
+websocket (ws:// or wss://, via libwebsockets): **Lightning** (LNbits) and
+**Arkade** (BTCPay). Each message is `PIN-SATS`, such as `516-1000` or BTCPay's
+`518-5000.0` (the decimal part is dropped). `rail lightning|arkade` in its
+configuration says which rail the source is; the pin is mapped to a slot with
+`map` lines and the payment goes to `bepsid`. It reconnects with back-off,
 uses websocket pings to notice a dead connection, and never logs the URL (it
 can hold a wallet key). It runs as its own user, `bepsi-watch`, which can reach
 the bepsid socket but not the GPIO or the database. See
-`etc/watch-lightning.conf.example`.
+`etc/watch-ws.conf.example`.
 
-**Known limit:** the LNbits message carries no payment hash, so the watcher
-makes up a unique id per message. That stops nothing if LNbits itself sends the
-same payment twice. It does mean one message can never dispense twice, and if
+Run one instance per source with the template unit:
+`systemctl enable --now bepsi-watch-ws@lightning bepsi-watch-ws@arkade`, each
+reading `/etc/bepsi/watch-<instance>.conf`.
+
+**Known limit:** these messages carry no payment hash, so the watcher makes up
+a unique id per message. That stops nothing if the source itself sends the same
+payment twice. It does mean one message can never dispense twice, and if
 `bepsid` does not answer in time the watcher logs it and does not retry, so
 that a slow answer cannot turn into a second drink; check those by hand.
 

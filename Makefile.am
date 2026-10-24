@@ -6,4 +6,4 @@ SUBDIRS = compat lib src data tests
 
 EXTRA_DIST = README.md COPYING
 
-dist_doc_DATA = etc/bepsid.conf.example etc/watch-lightning.conf.example
+dist_doc_DATA = etc/bepsid.conf.example etc/watch-ws.conf.example

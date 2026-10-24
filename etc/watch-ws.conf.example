@@ -1,12 +1,19 @@
-# watch-lightning.conf -- copy to $(sysconfdir)/bepsi/watch-lightning.conf.
+# watch-<instance>.conf -- copy to $(sysconfdir)/bepsi/watch-lightning.conf (for
+# bepsi-watch-ws@lightning) or watch-arkade.conf (for bepsi-watch-ws@arkade).
 #
 # This file can hold a secret (LNbits puts its key in the websocket URL), so
 # keep it readable only by the watcher:
 #   chown root:bepsi-watch watch-lightning.conf; chmod 0640 watch-lightning.conf
 # The URL is never written to the log, only the host name.
 
-# LNbits websocket.  The messages it sends are "PIN-SATS", e.g. "516-1000".
+# The websocket.  Its messages are "PIN-SATS", e.g. "516-1000" (BTCPay may write
+# "518-5000.0"; the decimal part is dropped).
+#   Lightning: wss://lnbits.example.com/api/v1/ws/YOUR-WALLET-ID
+#   Arkade:    wss://btcpay.example.com/ws  (the old ARKADE_WS_URL)
 url     wss://lnbits.example.com/api/v1/ws/YOUR-WALLET-ID
+
+# Which rail this source is: lightning or arkade.  Recorded with each payment.
+rail    lightning
 
 # bepsid's socket, and the CA bundle used to check the server's certificate.
 socket  /run/bepsi/bepsid.sock

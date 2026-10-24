@@ -19,7 +19,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-/* Check the LNbits message parser and the payment-id generator. */
+/* Check the watcher message parser and the payment-id generator. */
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>
@@ -43,7 +43,7 @@ static int failures;
 static int
 parse(const char *s, uint32_t *pin, uint64_t *sats)
 {
-	return bepsi_ln_parse(s, strlen(s), pin, sats);
+	return bepsi_ws_parse(s, strlen(s), pin, sats);
 }
 
 int
@@ -74,11 +74,20 @@ main(void)
 	    sats == 999999999999999ULL);
 
 	/* A NUL inside the text must not cut it short. */
-	CHECK(bepsi_ln_parse("516\0-1000", 9, &pin, &sats) == -1);
+	CHECK(bepsi_ws_parse("516\0-1000", 9, &pin, &sats) == -1);
 
-	bepsi_ln_payment_id(a, sizeof(a));
-	bepsi_ln_payment_id(b, sizeof(b));
+	/* BTCPay writes a decimal part; it is dropped. */
+	CHECK(parse("518-5000.0", &pin, &sats) == 0 && pin == 518 && sats == 5000);
+	CHECK(parse("518-5000.75", &pin, &sats) == 0 && sats == 5000);
+	CHECK(parse("518-5000.", &pin, &sats) == -1);
+	CHECK(parse("518-.5", &pin, &sats) == -1);
+	CHECK(parse("518-5000.0.0", &pin, &sats) == -1);
+	CHECK(parse("518-5000.0x", &pin, &sats) == -1);
+
+	bepsi_ws_payment_id(a, sizeof(a), "ln-");
+	bepsi_ws_payment_id(b, sizeof(b), "ark-");
 	CHECK(strncmp(a, "ln-", 3) == 0);
+	CHECK(strncmp(b, "ark-", 4) == 0);
 	CHECK(strcmp(a, b) != 0);
 	CHECK(strlen(a) < BEPSI_PAYID_LEN);
 
