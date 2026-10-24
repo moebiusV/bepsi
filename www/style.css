@@ -91,3 +91,10 @@ a { color: var(--accent); }
 .rails a { padding: .5rem 1rem; border-radius: 999px; border: 1px solid var(--accent); text-decoration: none; }
 .rails a.on { background: var(--accent); color: #fff; }
 .back { text-align: center; margin-top: 1.5rem; }
+
+.lamp { display: inline-block; width: 1.1rem; height: 1.1rem; border-radius: 50%; vertical-align: middle; }
+.lamp.off { background: var(--sold); }
+.lamp.on { background: #ffb020; box-shadow: 0 0 0 .25rem rgba(255, 176, 32, .35), 0 0 .9rem #ffb020; }
+tr.pressed td { background: rgba(255, 176, 32, .18); transition: background .4s; }
+form.inline { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+form.inline input[type=text] { flex: 1 1 10rem; min-width: 8rem; }

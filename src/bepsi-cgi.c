@@ -84,11 +84,11 @@ page_start(const char *title, const char *extra_head)
 }
 
 static void
-page_end(int script)
+page_end(const char *script)
 {
 	fputs("</main>", stdout);
-	if (script)
-		fputs("<script src=\"/bepsi.js\" defer></script>", stdout);
+	if (script != NULL)
+		printf("<script src=\"%s\" defer></script>", script);
 	fputs("</body></html>\n", stdout);
 }
 
@@ -100,7 +100,7 @@ error_page(int status, const char *reason, const char *text)
 	fputs("<h1>BEPSI</h1><p class=\"notice\">", stdout);
 	bepsi_html_puts(stdout, text);
 	fputs("</p>\n", stdout);
-	page_end(0);
+	page_end(NULL);
 }
 
 /* The drink board. */
@@ -143,7 +143,7 @@ page_index(void)
 	}
 	fputs("</ul>\n<p id=\"msg\" role=\"status\" aria-live=\"polite\"></p>\n",
 	    stdout);
-	page_end(1);
+	page_end("/bepsi.js");
 }
 
 /* How to pay for one drink: a QR code per rail that is set up. */
@@ -253,7 +253,7 @@ page_pay(void)
 	}
 	fputs("<p id=\"msg\" role=\"status\" aria-live=\"polite\"></p>\n"
 	    "<p class=\"back\"><a href=\"/\">Back to the board</a></p>\n", stdout);
-	page_end(1);
+	page_end("/bepsi.js");
 }
 
 /* Long-poll: "ok SLOT", "SLOT status", or "none" after POLL_MS. */
@@ -280,6 +280,8 @@ admin_message(const char *code)
 		return "Stock updated.";
 	if (strcmp(code, "swap-ok") == 0)
 		return "Slots swapped.";
+	if (strcmp(code, "input-ok") == 0)
+		return "Switch saved.";
 	if (strcmp(code, "refused") == 0)
 		return "The machine refused that change (stock above capacity?).";
 	if (strcmp(code, "bad") == 0)
@@ -289,18 +291,55 @@ admin_message(const char *code)
 	return NULL;
 }
 
+/* Long-poll for switch changes after `since`: lines "event SEQ INPUT STATE",
+ * or "reset" (reload the page: changes were missed), "none" after a while,
+ * "down" if the machine does not answer. */
+static void
+admin_input_events(unsigned long since)
+{
+	struct bepsi_input_event ev[32];
+	int i, n = bepsi_client_wait_inputs(sock, since, ev, 32, POLL_MS);
+
+	headers(n < 0 ? 503 : 200, n < 0 ? "Service Unavailable" : "OK",
+	    "text/plain; charset=utf-8", NULL);
+	if (n < 0)
+		printf("down\n");
+	else if (n == 0)
+		printf("none\n");
+	for (i = 0; i < n; i++) {
+		if (ev[i].input == BEPSI_INPUT_RESET)
+			printf("reset\n");
+		else
+			printf("event %llu %u %u\n", (unsigned long long)ev[i].seq,
+			    ev[i].input, ev[i].state);
+	}
+}
+
 static void
 page_admin_get(void)
 {
 	struct bepsi_slot slots[BEPSI_MAX_SLOTS];
 	char code[32] = "";
 	const char *qs = getenv("QUERY_STRING"), *msg = NULL;
-	int i, k, n = bepsi_client_slots(sock, slots, BEPSI_MAX_SLOTS, TIMEOUT_MS);
+	static struct bepsi_input_list il;
+	char sincebuf[32];
+	unsigned long since;
+	int i, k, n, have_inputs;
 
+	if (qs != NULL && bepsi_form_get(qs, "since", sincebuf, sizeof(sincebuf)) == 0) {
+		if (bepsi_parse_uint(sincebuf, (unsigned long)-1, &since) == -1) {
+			error_page(400, "Bad Request", "Bad request.");
+			return;
+		}
+		admin_input_events(since);
+		return;
+	}
+	n = bepsi_client_slots(sock, slots, BEPSI_MAX_SLOTS, TIMEOUT_MS);
 	if (n < 0) {
 		error_page(503, "Service Unavailable", "The machine is not answering.");
 		return;
 	}
+	have_inputs = bepsi_client_inputs(sock, &il, TIMEOUT_MS) == 0;
 	if (qs != NULL && bepsi_form_get(qs, "msg", code, sizeof(code)) == 0)
 		msg = admin_message(code);	/* a fixed text, never the input */
 
@@ -344,9 +383,54 @@ page_admin_get(void)
 		}
 		fputs("</select> ", stdout);
 	}
-	fputs("<button type=\"submit\">Swap</button></form>\n"
-	    "<p><a href=\"/\">Back to the board</a></p>\n", stdout);
-	page_end(0);
+	fputs("<button type=\"submit\">Swap</button></form>\n", stdout);
+
+	/* The switches, each with a lamp that follows it live (admin.js). */
+	fputs("<h2>Switches</h2>\n", stdout);
+	if (!have_inputs)
+		fputs("<p class=\"notice\">The switches cannot be read.</p>\n", stdout);
+	else if (il.count == 0)
+		fputs("<p class=\"notice\">No switches are configured.</p>\n", stdout);
+	else {
+		printf("<p>Press a switch on the machine and its lamp lights. Name it, "
+		    "and tie it to a slot if you like.</p>\n"
+		    "<p><label><input type=\"checkbox\" id=\"follow\" checked> "
+		    "Jump to a switch when it is pressed</label></p>\n"
+		    "<table class=\"admin\" id=\"switches\" data-seq=\"%llu\"><thead><tr>"
+		    "<th></th><th>#</th><th>Name</th><th>Slot</th><th></th></tr></thead><tbody>\n",
+		    (unsigned long long)il.seq);
+		for (k = 0; k < (int)il.count; k++) {
+			const struct bepsi_input *in = &il.in[k];
+
+			printf("<tr data-input=\"%u\"><td><span class=\"lamp %s\" "
+			    "role=\"img\" aria-label=\"%s\"></span></td><td>%u</td><td colspan=\"3\">"
+			    "<form method=\"post\" action=\"/admin.cgi\" class=\"inline\">"
+			    "<input type=\"hidden\" name=\"action\" value=\"input\">"
+			    "<input type=\"hidden\" name=\"id\" value=\"%u\">"
+			    "<input type=\"text\" name=\"label\" maxlength=\"%d\" value=\"",
+			    in->id, in->state ? "on" : "off", in->state ? "pressed" : "not pressed",
+			    in->id, in->id, BEPSI_LABEL_LEN - 1);
+			bepsi_html_puts(stdout, in->label);
+			fputs("\" aria-label=\"name\"> <select name=\"slot\" aria-label=\"slot\">"
+			    "<option value=\"none\"", stdout);
+			if (in->slot == BEPSI_NO_SLOT)
+				fputs(" selected", stdout);
+			fputs(">no slot</option>", stdout);
+			for (i = 0; i < n; i++) {
+				printf("<option value=\"%u\"%s>", slots[i].id,
+				    slots[i].id == in->slot ? " selected" : "");
+				bepsi_html_puts(stdout, slots[i].selection);
+				fputs(" ", stdout);
+				bepsi_html_puts(stdout, slots[i].product);
+				fputs("</option>", stdout);
+			}
+			fputs("</select> <button type=\"submit\">Save</button></form></td></tr>\n",
+			    stdout);
+		}
+		fputs("</tbody></table>\n", stdout);
+	}
+	fputs("<p><a href=\"/\">Back to the board</a></p>\n", stdout);
+	page_end(have_inputs && il.count > 0 ? "/admin.js" : NULL);
 }
 
 static void
@@ -435,6 +519,40 @@ page_admin_post(void)
 			fprintf(stderr, "admin %s: swapped slots %lu and %lu\n",
 			    user != NULL ? user : "?", x, y);
 			redirect("swap-ok");
+		}
+		return;
+	}
+	if (strcmp(action, "input") == 0) {
+		struct bepsi_input_set is;
+		char slotbuf[16];
+
+		memset(&is, 0, sizeof(is));
+		if (bepsi_form_get(body, "id", a, sizeof(a)) == -1 ||
+		    bepsi_form_get(body, "slot", slotbuf, sizeof(slotbuf)) == -1 ||
+		    bepsi_form_get(body, "label", is.label, sizeof(is.label)) == -1 ||
+		    is.label[0] == '\0' ||
+		    bepsi_parse_uint(a, BEPSI_MAX_INPUTS - 1, &x) == -1) {
+			redirect("bad");
+			return;
+		}
+		if (strcmp(slotbuf, "none") == 0)
+			is.slot = BEPSI_NO_SLOT;
+		else if (bepsi_parse_uint(slotbuf, BEPSI_MAX_SLOTS - 1, &y) == 0)
+			is.slot = (uint32_t)y;
+		else {
+			redirect("bad");
+			return;
+		}
+		is.id = (uint32_t)x;
+		if (bepsi_client_admin(sock, BEPSI_IMSG_INPUT_SET, &is, sizeof(is),
+		    &st, TIMEOUT_MS) == -1)
+			redirect("down");
+		else if (st != BEPSI_OK)
+			redirect("refused");
+		else {
+			fprintf(stderr, "admin %s: switch %lu named for slot %s\n",
+			    user != NULL ? user : "?", x, slotbuf);
+			redirect("input-ok");
 		}
 		return;
 	}

@@ -41,10 +41,14 @@ socket $D/sock
 db $D/bepsi.db
 gpio fake
 gpio_log $D/gpio.log
+gpio_inputs $D/inputs
 pulse_ms 10
 slot 0 A1 column /dev/gpiochip0 4 active-low 5 Coke
 slot 1 A2 column /dev/gpiochip0 5 active-low 5 <script>alert(1)</script>
+input 2 /dev/gpiochip0 17 active-low none Hopper <b>2</b>
+input 3 /dev/gpiochip0 18 active-low none Hopper 3
 CONF
+: > "$D/inputs"
 "$BEPSID" -c "$D/bepsid.conf" 2>"$D/bepsid.err" &
 pids=$!
 i=0; while [ ! -S "$D/sock" ] && [ $i -lt 100 ]; do sleep 0.05; i=$((i+1)); done
@@ -194,6 +198,55 @@ ctl list | awk '$1==0 && /alert/ && / 2\/5 /{f=1} END{exit !f}' || no "slot 0 sh
 ctl list | awk '$1==1 && /Coke/ && / 4\/5 /{f=1} END{exit !f}' || no "slot 1 should now hold Coke with 4"
 r=$(post "$base" "action=swap&a=0&b=0")
 [ "$r" = "303 /admin.cgi?msg=refused" ] || no "swap with itself gave '$r'"
+
+# --- admin: the switches, live
+get $auth "$base/admin.cgi" > "$D/admin3"
+grep -q 'id="switches"' "$D/admin3" || no "admin page lacks the switches table"
+grep -q 'data-input="2"' "$D/admin3" && grep -q 'data-input="3"' "$D/admin3" || no "switch rows missing"
+grep -q 'Hopper &lt;b&gt;2&lt;/b&gt;' "$D/admin3" || no "switch label not escaped"
+grep -q 'Hopper <b>2' "$D/admin3" && no "UNESCAPED switch label"
+[ "$(grep -c 'class="lamp off"' "$D/admin3")" = 2 ] || no "both lamps should start off"
+grep -q 'src="/admin.js"' "$D/admin3" || no "admin.js not loaded"
+seq=$(sed -n 's/.*id="switches" data-seq="\([0-9]*\)".*/\1/p' "$D/admin3")
+[ "$seq" = 0 ] || no "starting sequence should be 0, got '$seq'"
+
+# a long-poll waiting when a switch is pressed hears it at once
+( get $auth "$base/admin.cgi?since=0" > "$D/ev" ) &
+epid=$!
+sleep 1
+printf '17 1\n' >> "$D/inputs"
+wait $epid
+[ "$(cat "$D/ev")" = "event 1 2 1" ] || no "long-poll said '$(cat "$D/ev")', wanted 'event 1 2 1'"
+# asking again from an earlier point replays what was missed
+[ "$(get $auth "$base/admin.cgi?since=0")" = "event 1 2 1" ] || no "catch-up from 0 failed"
+get $auth "$base/admin.cgi" | grep -q 'lamp on' || no "the page should now show switch 2 lit"
+[ "$(get $auth "$base/admin.cgi?since=99")" = "reset" ] || no "a sequence ahead of the daemon should say reset"
+[ "$(code $auth "$base/admin.cgi?since=junk")" = 400 ] || no "a junk sequence should be 400"
+[ "$(code "$base/admin.cgi?since=0")" = 401 ] || no "the switch events need the password too"
+
+# naming a switch and tying it to a slot
+r=$(post "$base" "action=input&id=3&label=Tea+hopper&slot=1")
+[ "$r" = "303 /admin.cgi?msg=input-ok" ] || no "naming a switch gave '$r'"
+ctl inputs | awk '$1==3 && $3==1 && /Tea hopper/ {f=1} END{exit !f}' || no "the name and slot were not stored: $(ctl inputs | grep '^3 ')"
+get $auth "$base/admin.cgi" | grep -q 'value="Tea hopper"' || no "the page should show the new name"
+r=$(post "$base" "action=input&id=3&label=&slot=none")
+[ "$r" = "303 /admin.cgi?msg=bad" ] || no "an empty name gave '$r'"
+r=$(post "$base" "action=input&id=3&label=x&slot=40")
+[ "$r" = "303 /admin.cgi?msg=refused" ] || no "a slot that does not exist gave '$r'"
+r=$(post "$base" "action=input&id=3&label=x&slot=99")
+[ "$r" = "303 /admin.cgi?msg=bad" ] || no "a slot number out of range gave '$r'"
+r=$(post "$base" "action=input&id=40&label=x&slot=none")
+[ "$r" = "303 /admin.cgi?msg=bad" ] || no "a bad switch number gave '$r'"
+r=$(post "$base" "action=input&id=9&label=x&slot=none")
+[ "$r" = "303 /admin.cgi?msg=refused" ] || no "an unknown switch gave '$r'"
+r=$(post "$base" "action=input&id=3&label=0123456789012345678901234567890123456789&slot=none")
+[ "$r" = "303 /admin.cgi?msg=bad" ] || no "an over-long name gave '$r'"
+r=$(post "$base" "action=input&id=3&label=%01bad&slot=none")
+[ "$r" = "303 /admin.cgi?msg=refused" ] || no "a control character in a name gave '$r'"
+r=$(post "https://evil.example" "action=input&id=3&label=pwned&slot=none")
+[ "${r%% *}" = 403 ] || no "a cross-site rename should be 403, got '$r'"
+ctl inputs | grep -q pwned && no "a cross-site rename got through"
+r=$(post "$base" "action=input&id=3&label=Tea+hopper&slot=1")	# put it back for later checks
 
 # --- other
 [ "$(code "$base/nosuch.cgi")" = 404 ] || no "unknown page should be 404"

@@ -113,6 +113,14 @@ state: every request asks `bepsid` over the socket.
   browser's `Origin` must match the host), which stops another website using the
   admin's saved password. Product names and everything else are HTML-escaped,
   and a `?msg=` in the URL only selects a fixed message, never echoes input.
+  It also lists the machine's **switches** (the hopper-low switches, see
+  [Switches](#switches-inputs)) each with a **lamp that lights live** when the
+  switch is pressed on the machine, and lets the admin name each one and tie it
+  to a slot. "Jump to a switch when it is pressed" scrolls to it and selects its
+  name field, so the flow is: press the switch, type what it is, save. The page
+  follows changes with a long-poll on `/admin.cgi?since=N`, which is numbered, so
+  a press is never missed even if the page was not listening for a moment, and a
+  daemon restart makes the page reload.
 
 ### Payment addresses
 
