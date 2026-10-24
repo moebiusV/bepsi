@@ -1271,10 +1271,32 @@ start_civetweb(int argc, char *argv[])
 #endif
 	}
 
-	/* Show usage if -h or --help options are specified */
-	if (argc == 2
-	    && (!strcmp(argv[1], "-h") || !strcmp(argv[1], "-H")
-	        || !strcmp(argv[1], "--help"))) {
+	/* bepsi: GNU-style --version and --help, to stdout with status 0, which
+	 * "make installcheck" requires of every installed program.  -h and -H
+	 * still show civetweb's full option list on stderr. */
+	if (argc == 2 && !strcmp(argv[1], "--version")) {
+		fprintf(stdout, "bepsi-httpd (%s) %s, civetweb %s\n",
+		        BEPSI_PACKAGE, BEPSI_VERSION, mg_version());
+		exit(EXIT_SUCCESS);
+	}
+	if (argc == 2 && !strcmp(argv[1], "--help")) {
+		fprintf(stdout,
+		       "Usage: bepsi-httpd [config_file]\n"
+		       "       bepsi-httpd [-option value ...]\n"
+		       "       bepsi-httpd -A htpasswd_file realm user password\n"
+		       "       bepsi-httpd -R htpasswd_file realm user\n"
+		       "HTTPS server for the bepsi machine (civetweb %s).\n\n"
+		       "  -A   add a user or change a password\n"
+		       "  -R   remove a user\n"
+		       "  -h   list every option (on stderr)\n"
+		       "       --help     display this help and exit\n"
+		       "       --version  output version information and exit\n",
+		       mg_version());
+		exit(EXIT_SUCCESS);
+	}
+
+	/* Show usage if -h or -H is specified */
+	if (argc == 2 && (!strcmp(argv[1], "-h") || !strcmp(argv[1], "-H"))) {
 		show_usage_and_exit(argv[0]);
 	}
 

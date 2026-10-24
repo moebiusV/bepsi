@@ -16,4 +16,10 @@ Files kept: civetweb.c, civetweb.h, main.c (the stand-alone server) and the
 handle_form, openssl_dl, md5, sha1).  Lua, Duktape, mbedTLS, wolfSSL, zlib and
 HTTP/2 sources are left out.
 
-Local modifications: none.  List any here, with the reason, as they are made.
+Local modifications (list each here, with the reason, as it is made):
+
+ 1. main.c: --version prints "bepsi-httpd (bepsi) VERSION, civetweb 1.16" and
+    --help prints a short usage, both to stdout with exit status 0.  civetweb
+    printed usage to stderr and has no --version, and "make installcheck"
+    requires both of every installed program.  -h and -H are unchanged.  The
+    package name and version come from -DBEPSI_PACKAGE and -DBEPSI_VERSION.

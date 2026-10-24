@@ -78,7 +78,8 @@ segfaults on the first TLS request (seen on Debian 13 with OpenSSL 3.5), and
 the stand-alone server forwards a CGI program's output only when the program
 exits, so a CGI cannot stream; pages that wait for a payment must long-poll
 instead. Local changes to the vendored source are listed in
-`third_party/civetweb/README.bepsi`; there are none yet.
+`third_party/civetweb/README.bepsi` (one so far: GNU-style `--help` and
+`--version`).
 
 TLS only: a self-signed certificate is fine on a LAN, but the tablet's browser
 must be told to trust it. TLS 1.0 and 1.1 are refused and plain HTTP is not

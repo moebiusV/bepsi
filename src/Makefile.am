@@ -40,7 +40,8 @@ bepsi_httpd_SOURCES = $(top_srcdir)/third_party/civetweb/main.c \
 	$(top_srcdir)/third_party/civetweb/civetweb.c \
 	$(top_srcdir)/third_party/civetweb/civetweb.h
 bepsi_httpd_CPPFLAGS = -I$(top_srcdir)/third_party/civetweb \
-	-DNO_SSL_DL -DOPENSSL_API_3_0 -DUSE_IPV6
+	-DNO_SSL_DL -DOPENSSL_API_3_0 -DUSE_IPV6 \
+	-DBEPSI_PACKAGE='"$(PACKAGE_NAME)"' -DBEPSI_VERSION='"$(PACKAGE_VERSION)"'
 bepsi_httpd_LDADD = $(HTTPD_LIBS)
 EXTRA_DIST += $(top_srcdir)/third_party/civetweb/handle_form.inl \
 	$(top_srcdir)/third_party/civetweb/match.inl \
