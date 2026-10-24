@@ -93,6 +93,9 @@ NocoDB at `nocodb.dctrl.wtf` (purchase log).
 - Stock accounting database in `Attic/web`: current stock per slot, owner can
   update counts and swap products between slots. Stock should be decremented
   by the dispenser, since it decides when a dispense happens.
+- A visual redesign of the tablet UI: smoother, cleaner, less grunge than the
+  current chunky look. Target is the Fire tablet in portrait (model and
+  resolution still to be confirmed); plain HTML/CSS served by the C web daemon.
 - A single source of truth for slot / pin / product mapping (currently
   duplicated in `Attic/web/src/data/drinks.ts` and the dispenser's `PIN_*_NAME`
   env vars).
