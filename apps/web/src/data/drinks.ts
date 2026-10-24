@@ -1,0 +1,117 @@
+type Drink = {
+  id: string;
+  name: string;
+  color: string;
+  price: number;
+  sparkPrice: number;
+  alcoholic: boolean;
+  bepsiAmounts: {
+    '1x': number;
+    '3x': number;
+    '5x': number;
+  };
+  lnurl: string;
+  sparkAddress: string;
+  arkChoiceKey: string; // BTCPay POS tray identifier
+};
+
+const drinks: Drink[] = [
+  {
+    id: "1",
+    name: "coke",
+    color: "crimson",
+    price: 2000,
+    sparkPrice: 1,
+    alcoholic: false,
+    bepsiAmounts: {
+      '1x': 2000,
+      '3x': 2000,
+      '5x': 2025,
+    },
+    lnurl: "LNURL1DP68GURN8GHJ7MRW9EJXXARJDSH8WARX9A3XJARRDA5KUUMHD96XX6P0V9CXJTMKXYHKCMN4WFKZ7ERH2SU8XC6YDGEK5V3KV9JHVWRC8P65Y4JK8ACXJM3AX5CNVD629KC",
+    sparkAddress: "sp1pgssxuw6sy63ju52lcsjyal3z6sazg8zcwlpdufns6f6y08dzaypqwh6gfa969",
+    arkChoiceKey: "tray-0",
+  },
+  {
+    id: "2",
+    name: "iced tea",
+    color: "red",
+    price: 2000,
+    sparkPrice: 1,
+    alcoholic: false,
+    bepsiAmounts: {
+      '1x': 2000,
+      '3x': 2000,
+      '5x': 2025,
+    },
+    lnurl: "LNURL1DP68GURN8GHJ7MRW9EJXXARJDSH8WARX9A3XJARRDA5KUUMHD96XX6P0V9CXJTMKXYHKCMN4WFKZ7ERH2SU8XC6YDGEK5V3KV9JHVWRC8P65Y4JK8ACXJM3AX5CNW7LTX94",
+    sparkAddress: "sp1pgssxzh93wrep5vh4vwxjufhafr4gpve5z8mmdusmfqhyv3uegh6kqkst95g22",
+    arkChoiceKey: "tray-1",
+  },
+  {
+    id: "3",
+    name: "poppi",
+    color: "lightpink",
+    price: 2000,
+    sparkPrice: 1,
+    alcoholic: false,
+    bepsiAmounts: {
+      '1x': 2000,
+      '3x': 2000,
+      '5x': 2025,
+    },
+    lnurl: "LNURL1DP68GURN8GHJ7MRW9EJXXARJDSH8WARX9A3XJARRDA5KUUMHD96XX6P0V9CXJTMKXYHKCMN4WFKZ7ERH2SU8XC6YDGEK5V3KV9JHVWRC8P65Y4JK8ACXJM3AX5CNSF9YHJV",
+    sparkAddress: "sp1pgssxzqtsuypnx7r80f35frs8j4l7x47hp49rsyhmeyzwt8rctp08athgd8lkt",
+    arkChoiceKey: "tray-2",
+  },
+  {
+    id: "4",
+    name: "bubbly",
+    color: "lime",
+    price: 2000,
+    sparkPrice: 1,
+    alcoholic: false,
+    bepsiAmounts: {
+      '1x': 2000,
+      '3x': 2000,
+      '5x': 2025,
+    },
+    lnurl: "LNURL1DP68GURN8GHJ7MRW9EJXXARJDSH8WARX9A3XJARRDA5KUUMHD96XX6P0V9CXJTMKXYHKCMN4WFKZ7ERH2SU8XC6YDGEK5V3KV9JHVWRC8P65Y4JK8ACXJM3AX5ERGX8825P",
+    sparkAddress: "sp1pgss94dkzp5g0x57ladsp389j5hgrm85aznurgr8j5cuyd7pa65a9un54vahvf",
+    arkChoiceKey: "tray-3",
+  },
+  {
+    id: "5",
+    name: "cooler",
+    color: "orange",
+    price: 2000,
+    sparkPrice: 3,
+    alcoholic: true,
+    bepsiAmounts: {
+      '1x': 4000,
+      '3x': 9000,
+      '5x': 15000,
+    },
+    lnurl: "LNURL1DP68GURN8GHJ7MRW9EJXXARJDSH8WARX9A3XJARRDA5KUUMHD96XX6P0V9CXJTMKXYHKCMN4WFKZ7ERH2SU8XC6YDGEK5V3KV9JHVWRC8P65Y4JK8ACXJM3AX5ER24ZXF8V",
+    sparkAddress: "sp1pgssx2y79dgxumz335fhl64jqe4mcva5z4k9pcs3ljf2nq9cz43wrh0rpu5sw2",
+    arkChoiceKey: "tray-4",
+  },
+  {
+    id: "6",
+    name: "beer",
+    color: "grey",
+    price: 2000,
+    sparkPrice: 3,
+    alcoholic: true,
+    bepsiAmounts: {
+      '1x': 4000,
+      '3x': 9000,
+      '5x': 15000,
+    },
+    lnurl: "LNURL1DP68GURN8GHJ7MRW9EJXXARJDSH8WARX9A3XJARRDA5KUUMHD96XX6P0V9CXJTMKXYHKCMN4WFKZ7ERH2SU8XC6YDGEK5V3KV9JHVWRC8P65Y4JK8ACXJM3AX5ERSDJT7L0",
+    sparkAddress: "sp1pgss8taqlw2vhd2pfqzg4y753fpz2heavhztlrt6nh32xek6qvdu5emf7zaggp",
+    arkChoiceKey: "tray-5",
+  },
+];
+
+export default drinks;
