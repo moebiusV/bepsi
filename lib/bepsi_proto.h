@@ -73,6 +73,7 @@ enum bepsi_rail {
 	BEPSI_RAIL_SPARK,
 	BEPSI_RAIL_ARKADE,
 	BEPSI_RAIL_DISCORD,		/* emoji reaction; not a payment */
+	BEPSI_RAIL_MANUAL,		/* the owner, by hand (bepsictl vend) */
 	BEPSI_RAIL__LAST
 };
 

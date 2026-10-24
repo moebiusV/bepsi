@@ -119,6 +119,95 @@ out:
 	return rc;
 }
 
+/* Send one request after the hello and read the first reply of type `want`
+ * into buf (at most cap bytes; *got is its length).  0 on success, else -1. */
+static int
+exchange(const char *sockpath, uint32_t type, const void *data, size_t len,
+    uint32_t want, void *buf, size_t cap, size_t *got, int timeout_ms)
+{
+	struct imsgbuf ib;
+	struct imsg m;
+	struct bepsi_hello hello = { BEPSI_PROTO_VERSION };
+	struct pollfd pfd;
+	int fd, rc = -1, left = timeout_ms;
+
+	if ((fd = connect_to(sockpath)) == -1)
+		return -1;
+	if (imsgbuf_init(&ib, fd) == -1) {
+		close(fd);
+		return -1;
+	}
+	if (imsg_compose(&ib, BEPSI_IMSG_HELLO, 0, 0, -1, &hello,
+	    sizeof(hello)) == -1 ||
+	    imsg_compose(&ib, type, 0, 0, -1, data, len) == -1 ||
+	    imsgbuf_flush(&ib) == -1)
+		goto out;
+	pfd.fd = fd;
+	pfd.events = POLLIN;
+	while (left > 0) {
+		int r = imsgbuf_get(&ib, &m);
+
+		if (r == -1)
+			goto out;
+		if (r == 1) {
+			size_t n = imsg_get_len(&m);
+			int ok = imsg_get_type(&m) == want && n <= cap;
+
+			if (ok && n > 0 && imsg_get_data(&m, buf, n) == -1)
+				ok = 0;
+			imsg_free(&m);
+			if (ok) {
+				*got = n;
+				rc = 0;
+				goto out;
+			}
+			continue;
+		}
+		if (poll(&pfd, 1, left > 100 ? 100 : left) > 0) {
+			if (imsgbuf_read(&ib) != 1)
+				goto out;
+		} else
+			left -= 100;
+	}
+out:
+	imsgbuf_clear(&ib);
+	close(fd);
+	return rc;
+}
+
+int
+bepsi_client_slots(const char *sockpath, struct bepsi_slot *out, size_t max,
+    int timeout_ms)
+{
+	size_t got;
+	int i, n;
+
+	if (exchange(sockpath, BEPSI_IMSG_SLOT_LIST_REQ, NULL, 0,
+	    BEPSI_IMSG_SLOT_LIST, out, max * sizeof(*out), &got,
+	    timeout_ms) == -1 || got % sizeof(*out) != 0)
+		return -1;
+	n = (int)(got / sizeof(*out));
+	for (i = 0; i < n; i++)
+		if (!bepsi_slot_valid(&out[i]))
+			return -1;
+	return n;
+}
+
+int
+bepsi_client_admin(const char *sockpath, uint32_t type, const void *data,
+    size_t len, enum bepsi_status *status, int timeout_ms)
+{
+	struct bepsi_result r;
+	size_t got;
+
+	if (exchange(sockpath, type, data, len, BEPSI_IMSG_ADMIN_RESULT, &r,
+	    sizeof(r), &got, timeout_ms) == -1 || got != sizeof(r) ||
+	    !bepsi_result_valid(&r))
+		return -1;
+	*status = (enum bepsi_status)r.status;
+	return 0;
+}
+
 int
 bepsi_ws_parse(const char *msg, size_t len, uint32_t *pin, uint64_t *sats)
 {

@@ -51,6 +51,7 @@ static const char *const rail_names[BEPSI_RAIL__LAST] = {
 	[BEPSI_RAIL_SPARK]	= "spark",
 	[BEPSI_RAIL_ARKADE]	= "arkade",
 	[BEPSI_RAIL_DISCORD]	= "discord",
+	[BEPSI_RAIL_MANUAL]	= "manual",
 };
 
 static const char *const status_names[BEPSI_ERR__LAST] = {

@@ -38,6 +38,16 @@
 int bepsi_client_pay(const char *sockpath, const struct bepsi_paid *p,
     enum bepsi_status *status, int timeout_ms);
 
+/* Fetch the slot list into out[0..max-1]; returns how many slots, or -1. */
+int bepsi_client_slots(const char *sockpath, struct bepsi_slot *out,
+    size_t max, int timeout_ms);
+
+/* Send an administrative request (BEPSI_IMSG_STOCK_SET or _SLOT_SWAP, with its
+ * structure in data) and wait for the ADMIN_RESULT.  Returns 0 and sets
+ * *status, or -1 if the daemon could not be reached or did not answer. */
+int bepsi_client_admin(const char *sockpath, uint32_t type, const void *data,
+    size_t len, enum bepsi_status *status, int timeout_ms);
+
 /* Parse the text of a watcher notification, "PIN-SATS" such as "516-1000" or
  * "518-5000.0" (BTCPay writes a decimal part; it is dropped, as parseInt did
  * in the old JavaScript).  Returns 0 and sets *pin and *sats, or -1 if the

@@ -64,6 +64,23 @@ mapping; `bepsid --help` for options. It runs in the foreground for systemd.
   that can connect can fire a solenoid or edit stock, so keep it to the
   watcher and web users.
 
+## bepsictl, control from the shell
+
+`bepsictl` talks to a running `bepsid`, so the owner can manage the machine
+without the web UI:
+
+```
+bepsictl list                 # slots, products, stock
+bepsictl stock 0 8            # set slot 0's stock
+bepsictl swap 0 3             # swap two slots' products and stock
+bepsictl vend 2 refund-0042   # dispense one by hand; the id is recorded and must be new
+```
+
+Exit status is 0 when done, 1 when the daemon refused (the reason is printed),
+and 2 for a usage error or if the daemon cannot be reached. Manual vends are
+recorded in the ledger on the `manual` rail, which is how to make good a
+payment that `bepsid` marked `unknown`.
+
 ## bepsi-watch-ws, the websocket payment watchers
 
 One program, `bepsi-watch-ws`, covers the two rails that notify over a

@@ -24,6 +24,7 @@ tests/test_imsg
 tests/test_proto
 tests/test_bepsid
 tests/test_wsmsg
+src/bepsictl
 *.log
 *.trs
 bepsi-*.tar.*
