@@ -11,4 +11,4 @@ DIST_SUBDIRS = compat lib src data www scripts tests
 
 EXTRA_DIST = README.md COPYING
 
-dist_doc_DATA = etc/bepsid.conf.example etc/watch-ws.conf.example etc/httpd.conf.example
+dist_doc_DATA = etc/bepsid.conf.example etc/watch-ws.conf.example etc/httpd.conf.example etc/pay.conf.example

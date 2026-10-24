@@ -55,12 +55,12 @@ bepsi_cgi_LDADD = $(top_builddir)/lib/libbepsi.la \
 
 install-exec-hook:
 	$(MKDIR_P) "$(DESTDIR)$(pkgdatadir)/www"
-	for p in index status admin; do \
+	for p in index pay status admin; do \
 	  $(LN_S) -f "$(pkglibexecdir)/bepsi-cgi" "$(DESTDIR)$(pkgdatadir)/www/$$p.cgi"; \
 	done
 
 uninstall-hook:
-	for p in index status admin; do rm -f "$(DESTDIR)$(pkgdatadir)/www/$$p.cgi"; done
+	for p in index pay status admin; do rm -f "$(DESTDIR)$(pkgdatadir)/www/$$p.cgi"; done
 EXTRA_DIST += $(top_srcdir)/third_party/civetweb/handle_form.inl \
 	$(top_srcdir)/third_party/civetweb/match.inl \
 	$(top_srcdir)/third_party/civetweb/md5.inl \

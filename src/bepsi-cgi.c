@@ -23,6 +23,7 @@
  *
  * Installed under three names, and the name decides the page:
  *   index.cgi   the drink board, read from bepsid when asked
+ *   pay.cgi     how to pay for one drink: a QR code for each rail set up
  *   status.cgi  long-poll: waits for the next dispense result
  *   admin.cgi   stock counts and slot swaps (bepsi-httpd asks for a password)
  *
@@ -43,9 +44,12 @@
 #include <string.h>
 
 #include "bepsi_client.h"
+#include "bepsi_pay.h"
+#include "bepsi_qr.h"
 #include "bepsi_web.h"
 
 #define DEFAULT_SOCKET	"/run/bepsi/bepsid.sock"
+#define DEFAULT_PAYCONF	"/etc/bepsi/pay.conf"
 #define TIMEOUT_MS	4000
 #define POLL_MS		20000
 #define MAX_BODY	2048
@@ -66,11 +70,14 @@ headers(int status, const char *reason, const char *ctype, const char *extra)
 }
 
 static void
-page_start(const char *title)
+page_start(const char *title, const char *extra_head)
 {
 	fputs("<!doctype html>\n<html lang=\"en\"><head><meta charset=\"utf-8\">"
-	    "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
-	    "<title>", stdout);
+	    "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">",
+	    stdout);
+	if (extra_head != NULL)
+		fputs(extra_head, stdout);
+	fputs("<title>", stdout);
 	bepsi_html_puts(stdout, title);
 	fputs("</title><link rel=\"stylesheet\" href=\"/style.css\"></head><body>"
 	    "<main>\n", stdout);
@@ -89,7 +96,7 @@ static void
 error_page(int status, const char *reason, const char *text)
 {
 	headers(status, reason, "text/html; charset=utf-8", NULL);
-	page_start("Bepsi");
+	page_start("Bepsi", NULL);
 	fputs("<h1>BEPSI</h1><p class=\"notice\">", stdout);
 	bepsi_html_puts(stdout, text);
 	fputs("</p>\n", stdout);
@@ -109,26 +116,143 @@ page_index(void)
 		return;
 	}
 	headers(200, "OK", "text/html; charset=utf-8", NULL);
-	page_start("Bepsi");
+	page_start("Bepsi", NULL);
 	fputs("<h1>BEPSI</h1>\n<ul class=\"board\">\n", stdout);
 	for (i = 0; i < n; i++) {
 		if (!slots[i].enabled)
 			continue;
-		printf("<li class=\"slot%s\" data-slot=\"%u\"><span class=\"sel\">",
-		    slots[i].stock == 0 ? " soldout" : "", slots[i].id);
+		int sold = slots[i].stock == 0;
+
+		printf("<li class=\"slot%s\" data-slot=\"%u\">", sold ? " soldout" : "",
+		    slots[i].id);
+		if (sold)
+			fputs("<div class=\"row\">", stdout);
+		else
+			printf("<a class=\"row\" href=\"/pay.cgi?slot=%u\">", slots[i].id);
+		fputs("<span class=\"sel\">", stdout);
 		bepsi_html_puts(stdout, slots[i].selection);
 		fputs("</span><span class=\"name\">", stdout);
 		bepsi_html_puts(stdout, slots[i].product);
 		fputs("</span>", stdout);
-		if (slots[i].stock == 0)
+		if (sold)
 			fputs("<span class=\"stock\">sold out</span>", stdout);
 		else if (slots[i].stock <= 3)
 			printf("<span class=\"stock\">only %u left</span>",
 			    slots[i].stock);
-		fputs("</li>\n", stdout);
+		fputs(sold ? "</div></li>\n" : "</a></li>\n", stdout);
 	}
 	fputs("</ul>\n<p id=\"msg\" role=\"status\" aria-live=\"polite\"></p>\n",
 	    stdout);
+	page_end(1);
+}
+
+/* How to pay for one drink: a QR code per rail that is set up. */
+static void
+page_pay(void)
+{
+	static struct bepsi_pay pay;
+	struct bepsi_slot slots[BEPSI_MAX_SLOTS];
+	const struct bepsi_slot *sl = NULL;
+	const struct bepsi_pay_slot *ps;
+	const char *qs = getenv("QUERY_STRING"), *conf = getenv("BEPSI_PAY_CONF");
+	const char *rails[3], *names[3], *value = NULL, *how = "", *rail;
+	char sbuf[16], rbuf[16] = "", err[160], price[48] = "", title[96];
+	unsigned long id;
+	int i, n, nrails = 0, pick = 0;
+
+	if (qs == NULL || bepsi_form_get(qs, "slot", sbuf, sizeof(sbuf)) == -1 ||
+	    bepsi_parse_uint(sbuf, BEPSI_MAX_SLOTS - 1, &id) == -1) {
+		error_page(400, "Bad Request", "Pick a drink on the board first.");
+		return;
+	}
+	n = bepsi_client_slots(sock, slots, BEPSI_MAX_SLOTS, TIMEOUT_MS);
+	if (n < 0) {
+		error_page(503, "Service Unavailable",
+		    "The machine is not answering. Please try again in a moment.");
+		return;
+	}
+	for (i = 0; i < n; i++)
+		if (slots[i].id == id && slots[i].enabled)
+			sl = &slots[i];
+	if (sl == NULL) {
+		error_page(404, "Not Found", "There is no such drink.");
+		return;
+	}
+	if (sl->stock == 0) {
+		error_page(200, "OK", "Sorry, that one is sold out.");
+		return;
+	}
+	if (bepsi_pay_load(&pay, conf != NULL && *conf ? conf : DEFAULT_PAYCONF,
+	    err, sizeof(err)) == -1) {
+		fprintf(stderr, "pay: %s\n", err);
+		error_page(503, "Service Unavailable",
+		    "Payment is not set up yet. Please ask the owner.");
+		return;
+	}
+	ps = bepsi_pay_find(&pay, sl->id);
+	if (ps != NULL && ps->lightning[0]) {
+		rails[nrails] = "lightning"; names[nrails++] = "Lightning";
+	}
+	if (ps != NULL && ps->spark[0]) {
+		rails[nrails] = "spark"; names[nrails++] = "Spark";
+	}
+	if (pay.crypto_url[0]) {
+		rails[nrails] = "crypto"; names[nrails++] = "Other coins";
+	}
+	if (nrails == 0) {
+		error_page(503, "Service Unavailable",
+		    "Payment is not set up for this drink. Please ask the owner.");
+		return;
+	}
+	if (bepsi_form_get(qs, "rail", rbuf, sizeof(rbuf)) == 0)
+		for (i = 0; i < nrails; i++)
+			if (strcmp(rbuf, rails[i]) == 0)
+				pick = i;
+	rail = rails[pick];
+	if (strcmp(rail, "lightning") == 0) {
+		value = ps->lightning;
+		how = "Scan with a Lightning wallet";
+		if (ps->sats)
+			snprintf(price, sizeof(price), "%lu sats", ps->sats);
+	} else if (strcmp(rail, "spark") == 0) {
+		value = ps->spark;
+		how = "Scan with a Spark wallet";
+		if (ps->bepsi)
+			snprintf(price, sizeof(price), "%lu BEPSI", ps->bepsi);
+	} else {
+		value = pay.crypto_url;
+		how = "Scan to pay with other coins on our website";
+	}
+	snprintf(title, sizeof(title), "Payment code for %.60s", sl->product);
+
+	headers(200, "OK", "text/html; charset=utf-8", NULL);
+	/* Back to the board after two idle minutes. */
+	page_start("Bepsi", "<meta http-equiv=\"refresh\" content=\"120;url=/\">");
+	fputs("<h1>BEPSI</h1>\n<p class=\"pick\"><span class=\"sel\">", stdout);
+	bepsi_html_puts(stdout, sl->selection);
+	fputs("</span><span class=\"name\">", stdout);
+	bepsi_html_puts(stdout, sl->product);
+	fputs("</span></p>\n<div class=\"qrbox\">", stdout);
+	if (bepsi_qr_svg(stdout, value, title) == -1)
+		fputs("<p class=\"notice\">That payment code cannot be shown.</p>",
+		    stdout);
+	fputs("</div>\n<p class=\"how\">", stdout);
+	bepsi_html_puts(stdout, how);
+	fputs("</p>\n", stdout);
+	if (price[0]) {
+		fputs("<p class=\"price\">", stdout);
+		bepsi_html_puts(stdout, price);
+		fputs("</p>\n", stdout);
+	}
+	if (nrails > 1) {
+		fputs("<nav class=\"rails\">", stdout);
+		for (i = 0; i < nrails; i++)
+			printf("<a%s href=\"/pay.cgi?slot=%u&amp;rail=%s\">%s</a>",
+			    i == pick ? " class=\"on\"" : "", sl->id, rails[i], names[i]);
+		fputs("</nav>\n", stdout);
+	}
+	fputs("<p id=\"msg\" role=\"status\" aria-live=\"polite\"></p>\n"
+	    "<p class=\"back\"><a href=\"/\">Back to the board</a></p>\n", stdout);
 	page_end(1);
 }
 
@@ -181,7 +305,7 @@ page_admin_get(void)
 		msg = admin_message(code);	/* a fixed text, never the input */
 
 	headers(200, "OK", "text/html; charset=utf-8", NULL);
-	page_start("Bepsi admin");
+	page_start("Bepsi admin", NULL);
 	fputs("<h1>BEPSI admin</h1>\n", stdout);
 	if (msg != NULL) {
 		fputs("<p class=\"notice\">", stdout);
@@ -347,13 +471,16 @@ main(int argc, char **argv)
 	name = strrchr(script, '/');
 	name = name != NULL ? name + 1 : script;
 
-	if (strcmp(name, "index.cgi") == 0 || strcmp(name, "status.cgi") == 0) {
+	if (strcmp(name, "index.cgi") == 0 || strcmp(name, "status.cgi") == 0 ||
+	    strcmp(name, "pay.cgi") == 0) {
 		if (strcmp(method, "GET") != 0 && strcmp(method, "HEAD") != 0) {
 			error_page(405, "Method Not Allowed", "Not allowed.");
 			return 0;
 		}
 		if (strcmp(name, "index.cgi") == 0)
 			page_index();
+		else if (strcmp(name, "pay.cgi") == 0)
+			page_pay();
 		else
 			page_status();
 	} else if (strcmp(name, "admin.cgi") == 0) {

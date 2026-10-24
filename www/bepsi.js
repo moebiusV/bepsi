@@ -19,7 +19,7 @@
 		var parts = text.trim().split(" ");
 		if (parts[0] === "ok") {
 			say("Enjoy your " + nameOf(parts[1]) + "!");
-			setTimeout(function () { location.reload(); }, 5000);
+			setTimeout(function () { location.href = "/"; }, 5000);
 		} else if (parts[0] === "out-of-stock") {
 			say("Sorry, " + nameOf(parts[1]) + " is sold out.");
 		} else if (parts[0] === "hardware") {

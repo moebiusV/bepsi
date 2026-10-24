@@ -1,0 +1,10 @@
+QR Code generator library (C), vendored for the tablet's payment pages.
+
+Source:   https://github.com/nayuki/QR-Code-generator  tag v1.8.0  (c/ directory)
+Tarball:  v1.8.0.tar.gz
+SHA-256:  2ec0a4d33d6f521c942eeaf473d42d5fe139abcfa57d2beffe10c5cf7d34ae60
+License:  MIT, Copyright (c) Project Nayuki; the full notice is at the top of
+          qrcodegen.c and qrcodegen.h.
+
+No dependencies beyond libc.  Local modifications: none.  List any here, with
+the reason, as they are made.

@@ -1,0 +1,20 @@
+# pay.conf -- where customers pay for each slot.  Copy to
+# $(sysconfdir)/bepsi/pay.conf.  '#' starts a comment.
+#
+# These belong to the SLOT, not to the product in it: a Lightning address is
+# made for a pin, and the price it asks for is set there too.  If you swap two
+# products with different prices, the prices do not move with them.
+#
+# Each slot line takes any of:
+#   lightning LNURL   the LNURL of the slot's LNbits pay link (shown as a QR code)
+#   spark ADDRESS     the slot's Spark address, sp1...
+#   sats N            the price shown with the Lightning code
+#   bepsi N           the price shown with the Spark code, in BEPSI tokens
+# A rail with no value for a slot is simply not offered for it.
+
+# Other coins are paid on the public site; its address is shown as a QR code.
+crypto_url https://bepsi.dctrl.wtf/crypto
+
+slot 0 lightning LNURL1REPLACEWITHTHELNURLFORSLOT0 spark sp1replacewithsparkaddress0 sats 2000 bepsi 1
+slot 1 lightning LNURL1REPLACEWITHTHELNURLFORSLOT1 spark sp1replacewithsparkaddress1 sats 2000 bepsi 1
+# slot 2 ...

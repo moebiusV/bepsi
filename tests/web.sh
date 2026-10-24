@@ -53,9 +53,15 @@ ctl() { "$BEPSICTL" -s "$D/sock" "$@"; }
 ctl stock 0 0 && ctl stock 1 2 || exit 1
 
 # The pages, as the install puts them.
-for p in index status admin; do ln -s "$CGI" "$D/www/$p.cgi"; done
+for p in index pay status admin; do ln -s "$CGI" "$D/www/$p.cgi"; done
 cp "$WWW_SRC/style.css" "$WWW_SRC/bepsi.js" "$D/www/"
 
+LNURL1=LNURL1DP68GURN8GHJ7MRW9EJXXARJDSH8WARX9A3XJARRDA5KUUMHD96XX6P0V9CXJTMKXYHKCMN4WFKZ7ERH2SU8
+cat > "$D/pay.conf" <<CONF
+crypto_url https://bepsi.example/crypto
+slot 0 lightning LNURL1SLOTZERO spark sp1slotzero sats 100 bepsi 1
+slot 1 lightning $LNURL1 spark sp1slotone sats 2000 bepsi 3
+CONF
 openssl req -x509 -newkey rsa:2048 -nodes -keyout "$D/key.pem" -out "$D/cert.pem" \
 	-days 2 -subj "/CN=localhost" 2>/dev/null || exit 77
 cat "$D/key.pem" "$D/cert.pem" > "$D/server.pem"
@@ -72,7 +78,7 @@ index_files index.cgi
 enable_directory_listing no
 authentication_domain bepsi
 protect_uri /admin.cgi=$D/htpasswd
-cgi_environment BEPSI_SOCKET=$D/sock
+cgi_environment BEPSI_SOCKET=$D/sock,BEPSI_PAY_CONF=$D/pay.conf
 num_threads 8
 CONF
 "$HTTPD" "$D/httpd.conf" >"$D/httpd.log" 2>&1 &
@@ -83,6 +89,7 @@ i=0; while ! curl -sk -m 1 "$base/style.css" >/dev/null 2>&1 && [ $i -lt 50 ]; d
 fail=0
 no() { echo "FAIL: $*"; fail=1; }
 get() { curl -sk -m 8 "$@"; }
+code() { get -o /dev/null -w '%{http_code}' "$@"; }
 
 # --- the board
 get "$base/" > "$D/board"
@@ -95,6 +102,49 @@ grep -q "<script>alert" "$D/board" && no "UNESCAPED script from a product name"
 get -D - -o /dev/null "$base/" | grep -qi "^content-security-policy:" || no "no CSP header"
 get -D - -o /dev/null "$base/" | grep -qi "^strict-transport-security:" || no "no HSTS header"
 
+# --- paying: links on the board, and the pay page
+grep -q 'href="/pay.cgi?slot=1"' "$D/board" || no "in-stock drink should link to its pay page"
+grep -q 'href="/pay.cgi?slot=0"' "$D/board" && no "sold-out drink must not link to a pay page"
+get "$base/pay.cgi?slot=1" > "$D/pay1"
+[ "$(code "$base/pay.cgi?slot=1")" = 200 ] || no "pay page status"
+grep -q "<svg " "$D/pay1" || no "pay page has no QR code"
+grep -q "Scan with a Lightning wallet" "$D/pay1" || no "pay page lacks the Lightning instruction"
+grep -q "2000 sats" "$D/pay1" || no "pay page lacks the price"
+grep -q 'rail=spark' "$D/pay1" && grep -q "Other coins" "$D/pay1" || no "pay page lacks the other rails"
+grep -q "<script>alert" "$D/pay1" && no "UNESCAPED product name on the pay page"
+grep -q "http-equiv=\"refresh\"" "$D/pay1" || no "pay page does not return to the board when idle"
+get "$base/pay.cgi?slot=1&rail=spark" | grep -q "Scan with a Spark wallet" || no "spark rail not shown"
+get "$base/pay.cgi?slot=1&rail=spark" | grep -q "3 BEPSI" || no "spark price not shown"
+get "$base/pay.cgi?slot=1&rail=crypto" | grep -q "other coins on our website" || no "crypto rail not shown"
+get "$base/pay.cgi?slot=1&rail=bogus" | grep -q "Scan with a Lightning wallet" || no "unknown rail should fall back to the first"
+get "$base/pay.cgi?slot=0" | grep -q "sold out" || no "a sold-out drink should say so"
+get "$base/pay.cgi?slot=0" | grep -q "<svg " && no "a sold-out drink must not show a payment code"
+[ "$(code "$base/pay.cgi?slot=7")" = 404 ] || no "unknown slot should be 404"
+[ "$(code "$base/pay.cgi?slot=x")" = 400 ] || no "bad slot should be 400"
+[ "$(code "$base/pay.cgi")" = 400 ] || no "missing slot should be 400"
+
+# the code on the page must scan to exactly the configured LNURL
+if command -v zbarimg >/dev/null 2>&1; then
+	python3 - "$D/pay1" "$D/qr.pbm" <<'PY' || no "could not turn the page's QR into an image"
+import re, sys
+html = open(sys.argv[1]).read()
+vb = re.search(r'viewBox="0 0 (\d+) (\d+)"', html)
+n = int(vb.group(1))
+grid = [[0] * n for _ in range(n)]
+path = re.search(r'<path fill="#000" d="([^"]*)"', html).group(1)
+for x, y in re.findall(r'M(\d+),(\d+)h1v1h-1z', path):
+    grid[int(y)][int(x)] = 1
+s = 8
+with open(sys.argv[2], "w") as f:
+    f.write("P1\n%d %d\n" % (n * s, n * s))
+    for row in grid:
+        line = " ".join(str(v) for c in row for v in [c] * s)
+        for _ in range(s):
+            f.write(line + "\n")
+PY
+	[ "$(zbarimg --quiet --raw "$D/qr.pbm" 2>/dev/null)" = "$LNURL1" ] || no "the pay page's QR does not scan to the configured LNURL"
+fi
+
 # --- live status: a payment while a poll is waiting
 ctl stock 0 3
 ( get "$base/status.cgi" > "$D/status" ) &
@@ -105,7 +155,6 @@ wait $spid
 [ "$(cat "$D/status")" = "ok 0" ] || no "status long-poll said '$(cat "$D/status")', wanted 'ok 0'"
 
 # --- admin: password
-code() { get -o /dev/null -w '%{http_code}' "$@"; }
 [ "$(code "$base/admin.cgi")" = 401 ] || no "admin without a password should be 401"
 [ "$(code --digest -u admin:wrong "$base/admin.cgi")" = 401 ] || no "wrong password should be 401"
 [ "$(code --digest -u admin:s3cret-pw "$base/admin.cgi")" = 200 ] || no "right password should be 200"

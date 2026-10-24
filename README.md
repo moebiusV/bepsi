@@ -94,6 +94,16 @@ state: every request asks `bepsid` over the socket.
 
 - **`/` (index.cgi)**: the drink board, from the live slot list. Sold-out
   drinks are struck through; three or fewer left shows "only N left".
+- **`/pay.cgi?slot=N`**: how to pay for one drink. A drink on the board is a
+  button; it opens a large QR code for the first payment rail set up for that
+  slot (Lightning, then Spark), with the price, and buttons to switch rail. An
+  "Other coins" button shows a QR code for the public wallet site. After two
+  idle minutes it returns to the board. The QR codes are drawn by the page
+  itself as inline SVG (black on white whatever the colour scheme, with the
+  quiet zone scanners need), using the vendored
+  [Nayuki generator](https://github.com/nayuki/QR-Code-generator) (MIT,
+  `third_party/qrcodegen/`); the tests scan them back with an independent
+  decoder (zbar) when it is installed.
 - **`/status.cgi`**: a long-poll the board's small script (`bepsi.js`) keeps
   open. It answers `ok SLOT` when a drink is dispensed, and the board shows
   "Enjoy your Coke!". Results that happen in the gap between two polls are not
@@ -104,12 +114,26 @@ state: every request asks `bepsid` over the socket.
   admin's saved password. Product names and everything else are HTML-escaped,
   and a `?msg=` in the URL only selects a fixed message, never echoes input.
 
+### Payment addresses
+
+`/etc/bepsi/pay.conf` (see `etc/pay.conf.example`) says where to pay for each
+slot: its Lightning LNURL, its Spark address, and the prices shown. They belong
+to the **slot**, not to the product in it, because a payment address is made for
+a pin and the price it asks for is set there: if you swap two products with
+different prices, the prices do not move with them. Values are restricted to
+letters, digits and `. : _ -` and the file is rejected with a line number if
+anything is off. If the file is missing, drinks show "Payment is not set up yet".
+
+Bitcoin and Arkade (a live invoice from BTCPay, which needs an HTTP call and
+JSON) are not on the tablet yet.
+
 ### Setting up the web server
 
 ```
 sudo bepsi-mkcert bepsi.local 192.168.1.50   # names/addresses the tablet will use
 sudo bepsi-passwd admin                      # asks for the admin password
 sudo cp /usr/share/doc/bepsi/httpd.conf.example /etc/bepsi/httpd.conf
+sudo cp /usr/share/doc/bepsi/pay.conf.example /etc/bepsi/pay.conf   # then fill in your addresses
 sudo systemctl enable --now bepsi-httpd
 ```
 

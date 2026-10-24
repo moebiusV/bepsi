@@ -20,7 +20,7 @@ authentication_domain bepsi
 protect_uri           /admin.cgi=/etc/bepsi/htpasswd
 
 # Where the CGI programs find bepsid.
-cgi_environment       BEPSI_SOCKET=/run/bepsi/bepsid.sock
+cgi_environment       BEPSI_SOCKET=/run/bepsi/bepsid.sock,BEPSI_PAY_CONF=/etc/bepsi/pay.conf
 
 # Each tablet waiting for a payment holds one request for up to 20 seconds.
 num_threads           8
