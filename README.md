@@ -118,7 +118,8 @@ Use `git log -- Attic/web/src/...` to follow a file.
 
 ## License
 
-MIT; see `LICENSE` (the same text as the original `bepsi-pi`, copyright GitYVR).
+MIT; see `LICENSE`. Inherited code (`Attic/`) keeps its original copyright
+(GitYVR, per the original `bepsi-pi` license); new code is copyright moebiusV.
 `Attic/web` has no license file of its own and is covered by this notice as
 part of the same project history. Any ISC-licensed files vendored later (for
 example imsg) keep their own notices.
