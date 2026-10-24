@@ -13,6 +13,25 @@ The JavaScript code below is the working machine as deployed. It now lives in
 structure and full GNU packaging (autoconf/automake). `Attic/` stays until the
 C version reaches parity; nothing there is under active development.
 
+## Building the C code
+
+```
+autoreconf -fi        # only needed from a git checkout
+./configure
+make
+make check
+make distcheck
+```
+
+Requires a C compiler, make and the GNU autotools. Currently the tree holds
+the autotools skeleton, the vendored imsg library (`compat/`) and a test that
+exchanges a message through it; the daemons are not written yet.
+
+`compat/` holds OpenBSD's imsg(3) (ISC license, unmodified, each file keeps its
+notice) plus small shims for `strlcpy`, `explicit_bzero` and `freezero`, which
+are built only when the C library lacks them (the Pi's Debian 12 has no
+`strlcpy`).
+
 ## Layout
 
 | Path (all under `Attic/`) | What it is |
@@ -118,9 +137,8 @@ Use `git log -- Attic/web/src/...` to follow a file.
 
 ## License
 
-MIT; see `LICENSE`. Inherited code (`Attic/`) keeps its original copyright
+MIT; see `COPYING`. Inherited code (`Attic/`) keeps its original copyright
 (GitYVR, per the original `bepsi-pi` license); new code is copyright moebiusV. Files under `Attic/` carry only their
 original copyright, and moebiusV is added to a file only when moebiusV changes it.
 `Attic/web` has no license file of its own and is covered by this notice as
-part of the same project history. Any ISC-licensed files vendored later (for
-example imsg) keep their own notices.
+part of the same project history. The ISC-licensed imsg files in `compat/` keep their own notices.

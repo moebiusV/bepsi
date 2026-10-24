@@ -1,0 +1,8 @@
+moebiusV              maintainer; C reimplementation (2026-)
+
+The original JavaScript implementation, kept under Attic/, was written by
+GitYVR and contributors, notably Eric Chennells, Owen (omurovec), Leonhard
+Weese, Hui Zheng and Steven Luscher.  See the git history for details.
+
+compat/imsg.c, imsg-buffer.c, imsg.h and imsg_init.3 are from OpenBSD's
+libutil (ISC license); see the notices in those files.

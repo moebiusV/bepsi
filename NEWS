@@ -1,0 +1,5 @@
+bepsi NEWS -- history of user-visible changes.
+
+* Noteworthy changes in release ?.? (????-??-??) [?]
+
+** Initial autotools skeleton and vendored imsg(3).

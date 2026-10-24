@@ -1,0 +1,30 @@
+# autotools / build output
+Makefile
+Makefile.in
+aclocal.m4
+autom4te.cache/
+build-aux/
+config.h
+config.h.in
+config.h.in~
+config.log
+config.status
+configure
+configure~
+libtool
+m4/*
+!m4/.gitkeep
+.deps/
+.libs/
+*.o
+*.lo
+*.la
+stamp-h1
+tests/test_imsg
+*.log
+*.trs
+bepsi-*.tar.*
+
+# local scratch clones of the original repos
+/yvrbepsi-ui/
+/bepsi-pi/
