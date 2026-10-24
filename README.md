@@ -115,3 +115,10 @@ differ from the originals; authors, dates and messages are unchanged). All
 branches are kept, prefixed `web/` or `dispenser/`, so for example both
 `web/pi-deployed-20261023` and `dispenser/pi-deployed-20261023` exist.
 Use `git log -- Attic/web/src/...` to follow a file.
+
+## License
+
+MIT; see `LICENSE` (the same text as the original `bepsi-pi`, copyright GitYVR).
+`Attic/web` has no license file of its own and is covered by this notice as
+part of the same project history. Any ISC-licensed files vendored later (for
+example imsg) keep their own notices.
