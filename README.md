@@ -2,6 +2,28 @@
 
 Code for the DCTRL Bepsi machine. Pay crypto, get a beverage.
 
+Bepsi is a revamp of the old Pepsi soda dispensing machine. It takes
+cryptocurrency instead of coins: pick a drink on the touchscreen, pay by
+scanning a QR code, and the machine drops the can.
+
+## Goals
+
+- **More coins.** The machine takes Lightning bitcoin payments today. The aim
+  is to support a range of altcoins alongside it, each as a separate payment
+  rail that ends the same way: work out which slot was paid for, and fire it.
+  The old code already has rails for EVM stablecoins, Solana, Spark and
+  Arkade (see [Supported payment rails](#supported-payment-rails)); the C
+  rewrite is meant to bring them over one at a time.
+- **A cleaner codebase.** The working JavaScript is being rewritten in C with
+  modern practice: small daemons that each do one job and talk over a
+  validated wire protocol; each daemon runs as its own unprivileged user under
+  systemd sandboxing; a payment is recorded and its stock taken in one
+  transaction, so a drink is never dispensed twice; vendored libraries are
+  pinned by checksum; and the whole thing is packaged with autoconf/automake,
+  with tests run by `make check`.
+
+## How it is built
+
 One Raspberry Pi sits inside the machine. It serves the touchscreen website
 and drives the dispensing solenoids over GPIO. A Fire tablet on the machine
 displays that website over wifi.
@@ -320,9 +342,9 @@ The old `Attic/dispenser/README.md` is out of date (it lists MATIC and DAI).
 Original upstreams (the repos in `apps/` were forked from these; the forks are
 the live code):
 
-- [GitYVR/yvrbepsi-ui](https://github.com/GitYVR/yvrbepsi-ui) — upstream of `Attic/web`. Its `main` carries the public wallet-payment page behind bepsi.dctrl.wtf (HyperEVM, Citrea, ctUSD, BEPSI token), not yet merged here.
-- [GitYVR/bepsi-pi](https://github.com/GitYVR/bepsi-pi) — upstream of `Attic/dispenser`. Nothing upstream is missing from this repo.
-- [echennells/yvrbepsi-ui](https://github.com/echennells/yvrbepsi-ui), [echennells/bepsi-pi](https://github.com/echennells/bepsi-pi) — the forks that were running live when this repo was created.
+- [GitYVR/yvrbepsi-ui](https://github.com/GitYVR/yvrbepsi-ui) - upstream of `Attic/web`. Its `main` carries the public wallet-payment page behind bepsi.dctrl.wtf (HyperEVM, Citrea, ctUSD, BEPSI token), not yet merged here.
+- [GitYVR/bepsi-pi](https://github.com/GitYVR/bepsi-pi) - upstream of `Attic/dispenser`. Nothing upstream is missing from this repo.
+- [echennells/yvrbepsi-ui](https://github.com/echennells/yvrbepsi-ui), [echennells/bepsi-pi](https://github.com/echennells/bepsi-pi) - the forks that were running live when this repo was created.
 
 Older Bepsi code, kept for reference: [GitYVR/yvrbepsi-OLD](https://github.com/GitYVR/yvrbepsi-OLD), [GitYVR/bitcoil-pi](https://github.com/GitYVR/bitcoil-pi).
 
