@@ -1,5 +1,7 @@
 # bepsi
 
+[github.com/moebiusV/bepsi](https://github.com/moebiusV/bepsi) | `git clone https://github.com/moebiusV/bepsi`
+
 Code for the DCTRL Bepsi machine. Pay crypto, get a beverage.
 
 Bepsi is a revamp of the old Pepsi soda dispensing machine. It takes
