@@ -1,6 +1,6 @@
 # bepsi
 
-[Index: All Projects](https://moebiusv.github.io/) | [github.com/moebiusV/bepsi](https://github.com/moebiusV/bepsi) | `git clone https://github.com/moebiusV/bepsi`
+Index: [All Projects](https://moebiusv.github.io/) | Git Repository: [github.com/moebiusV/bepsi](https://github.com/moebiusV/bepsi) | `git clone https://github.com/moebiusV/bepsi`
 
 Code for the DCTRL Bepsi machine. Pay crypto, get a beverage.
 
